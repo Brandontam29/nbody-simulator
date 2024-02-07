@@ -1,0 +1,16 @@
+{
+    "name": "src",
+    "version": "1.0.0",
+    "description": "",
+    "main": "script.js",
+    "scripts": {
+        "dev": "npm run tw",
+        "tw": "tailwindcss -i ./src/app.css -o ./src/tailwind.css --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "tailwindcss": "^3.4.1"
+    }
+}
