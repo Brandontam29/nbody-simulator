@@ -76,7 +76,7 @@ async function render() {
         const worldHeight = (worldWidth * canvasHeight) / canvasWidth;
         const pcPosition = {
             x: (p.position.x / worldWidth) * canvasWidth,
-            y: (p.position.y / worldWidth) * worldHeight,
+            y: (p.position.y / worldHeight) * canvasHeight,
         };
 
         const PAINT_SCALE = 2;
