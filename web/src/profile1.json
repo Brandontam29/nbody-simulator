@@ -1,0 +1,11 @@
+{
+    "worldScale": "40",
+    "particleAmount": "100",
+    "gravity": "2",
+    "epsilon": "100",
+    "mass": "10000",
+    "massDeviation": "25",
+    "diameter": "100",
+    "timeStep": "100",
+    "updateFrequency": "10"
+}

@@ -2,20 +2,24 @@ mod particle;
 
 extern crate wasm_bindgen;
 
-use particle::{Particle, ParticleArgs, Vector2};
+use particle::{Particle, Vector2};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn generate_particle(input_args: JsValue) -> Result<JsValue, JsValue> {
-    let args: ParticleArgs = serde_wasm_bindgen::from_value(input_args)?;
+pub fn generate_particle(
+    mass_js: JsValue,
+    diameter_js: JsValue,
+    position_js: JsValue,
+    velocity_js: JsValue,
+    color_js: JsValue,
+) -> Result<JsValue, JsValue> {
+    let mass: f64 = serde_wasm_bindgen::from_value(mass_js)?;
+    let diameter: f64 = serde_wasm_bindgen::from_value(diameter_js)?;
+    let position: Vector2 = serde_wasm_bindgen::from_value(position_js)?;
+    let velocity: Vector2 = serde_wasm_bindgen::from_value(velocity_js)?;
+    let color: [f32; 3] = serde_wasm_bindgen::from_value(color_js)?;
 
-    let particle = Particle::new(
-        args.diameter,
-        args.mass,
-        args.position,
-        args.velocity,
-        args.color,
-    );
+    let particle = Particle::new(mass, diameter, position, velocity, color);
 
     return Ok(serde_wasm_bindgen::to_value(&particle)?);
 }

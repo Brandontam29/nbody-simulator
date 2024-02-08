@@ -4,13 +4,13 @@ import init, {
     next_nbody_positions,
 } from "../../nbody_simulator/pkg/nbody_simulator.js";
 
-import variables from "./default.js";
+import state from "./form-state.js";
+import appState from "./app-state.js";
+import { removeElementsByIndices } from "./removeElementsByIndices.js";
 
 /**
  * Variables
  */
-let particles = [];
-let play = true;
 
 const canvas = document.getElementsByTagName("canvas")[0];
 const container = document.getElementById("stats-container");
@@ -23,32 +23,36 @@ stats.showPanel(0);
 
 container.appendChild(stats.dom);
 
-canvas.height = variables.height;
-canvas.width = variables.width;
+canvas.height = state.canvasHeight;
+canvas.width = state.canvasWidth;
 
 /**
  * INIT
  */
 document.addEventListener("DOMContentLoaded", (_event) => {
-    init().then(() => {
+    init().then(async () => {
         setupParticles();
+
         registerNextFrameButton();
         registerPlayPauseButton();
         registerRestartButton();
+        registerLogStatsButton();
+        registerSaveButton();
+        registerFileUpload();
         registerParameterForm();
         registerDefaultValues();
 
         requestAnimationFrame(render);
         setInterval(async () => {
-            if (!play) return;
+            if (!appState.play) return;
 
-            particles = await next_nbody_positions(
-                particles,
-                variables.gravity,
-                variables.epsilon,
-                variables.scale
+            appState.particles = await next_nbody_positions(
+                appState.particles,
+                state.gravity,
+                state.epsilon,
+                state.timeStep
             );
-        }, variables.updateFrequency);
+        }, state.updateFrequency);
     });
 });
 
@@ -59,27 +63,75 @@ async function render() {
     stats.begin();
 
     if (!ctx) throw new Error("canvas dead");
-    ctx.clearRect(0, 0, variables.width, variables.height);
-    for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        ctx.fillRect(p.position.x, p.position.y, p.diameter * 2, p.diameter * 2);
-        ctx.fillStyle = "#000";
+
+    const { canvasWidth, canvasHeight, worldWidth } = state;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    let toRemove = [];
+
+    for (let i = 0; i < appState.particles.length; i++) {
+        const p = appState.particles[i];
+
+        const worldHeight = (worldWidth * canvasHeight) / canvasWidth;
+        const pcPosition = {
+            x: (p.position.x / worldWidth) * canvasWidth,
+            y: (p.position.y / worldWidth) * worldHeight,
+        };
+
+        const PAINT_SCALE = 2;
+        const pcDiameter = (p.diameter / worldWidth) * canvasWidth * PAINT_SCALE;
+
+        if (
+            pcPosition.x > canvasWidth * 1.5 ||
+            pcPosition.y > canvasHeight * 1.5 ||
+            pcPosition.x < 0 - 0.5 * canvasWidth ||
+            pcPosition.y < 0 - 0.5 * canvasHeight
+        ) {
+            toRemove.push(i);
+            continue;
+        }
+
+        ctx.fillStyle = `rgb(${Math.floor(p.color[0])}, ${Math.floor(
+            p.color[1]
+        )}, ${Math.floor(p.color[2])})`;
+
+        ctx.fillRect(
+            pcPosition.x - pcDiameter / 2,
+            pcPosition.y - pcDiameter / 2,
+            pcDiameter,
+            pcDiameter
+        );
+
+        // console.log(
+        //     i,
+        //     (p.mass / state.mass).toFixed(2),
+        //     formatNumberWithUnderscores(p.diameter),
+        //     pcDiameter.toFixed(2)
+        // );
         ctx.fill();
     }
 
+    removeElementsByIndices(appState.particles, toRemove);
+
     stats.end();
 
-    if (play) requestAnimationFrame(render);
+    if (appState.play) requestAnimationFrame(render);
 }
 
 async function setupParticles() {
-    particles = await generate_particles(
-        variables.particleAmount,
-        { x: variables.width, y: variables.height },
-        variables.mass,
-        variables.massDeviation,
-        variables.diameter
+    appState.particles = await generate_particles(
+        state.particleAmount,
+        {
+            x: state.worldWidth,
+            y: (state.canvasHeight * state.worldWidth) / state.canvasWidth,
+        },
+        state.mass,
+        state.massDeviation,
+        state.diameter
     );
+
+    console.log(appState.particles);
 }
 
 /**
@@ -89,9 +141,9 @@ function registerPlayPauseButton() {
     const button = document.getElementById("play-pause");
 
     button.addEventListener("click", () => {
-        play = !play;
+        appState.play = !appState.play;
 
-        if (play) {
+        if (appState.play) {
             requestAnimationFrame(render);
         }
     });
@@ -101,7 +153,12 @@ function registerNextFrameButton() {
     const button = document.getElementById("next-frame");
 
     button.addEventListener("click", async () => {
-        particles = await next_nbody_positions(particles);
+        appState.particles = await next_nbody_positions(
+            appState.particles,
+            state.gravity,
+            state.epsilon,
+            state.timeStep
+        );
 
         requestAnimationFrame(render);
     });
@@ -114,6 +171,47 @@ function registerRestartButton() {
         setupParticles();
     });
 }
+function registerLogStatsButton() {
+    const button = document.getElementById("log-stats");
+
+    button.addEventListener("click", async () => {
+        // for (let i = 0; i < appState.particles.length; i++) {
+        //     const p = appState.particles[i];
+        //     console.log(i, p);
+        // }
+
+        console.log(appState.particles);
+    });
+}
+
+function registerSaveButton() {
+    const button = document.getElementById("save");
+
+    button.addEventListener("click", async () => {
+        const form = document.getElementById("parameter-form");
+        const formData = new FormData(form);
+
+        const formDataObj = {};
+
+        formData.forEach(function (value, key) {
+            formDataObj[key] = value;
+        });
+
+        const jsonData = JSON.stringify(formDataObj);
+
+        const blob = new Blob([jsonData], { type: "application/json" });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "nbody-parameters.json";
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+    });
+}
 
 function registerParameterForm() {
     const parameterForm = document.getElementById("parameter-form");
@@ -121,7 +219,7 @@ function registerParameterForm() {
     parameterForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const keys = Object.keys(variables);
+        const keys = Object.keys(state);
 
         for (let i = 0; i < keys.length; i++) {
             const input = document.getElementsByName(keys[i])[0];
@@ -129,34 +227,92 @@ function registerParameterForm() {
             if (!input) continue;
 
             if (input.type === "number") {
-                variables[keys[i]] = input.valueAsNumber;
+                state[keys[i]] = input.valueAsNumber;
                 continue;
             }
 
-            variables[keys[i]] = input.value;
+            state[keys[i]] = input.value;
         }
+
+        canvas.width = state.canvasWidth;
+        canvas.height = state.canvasHeight;
 
         setupParticles();
     });
 }
-function registerDefaultValues() {
-    const inputs = document.getElementsByTagName("input");
+function registerFileUpload() {
+    const uploadInput = document.getElementById("parameters-upload");
 
-    for (let i = 0; i < inputs.length; i++) {
-        const input = inputs[i];
+    uploadInput.addEventListener("change", function (event) {
+        // Get the file list from the input element
+        const files = event.target.files;
 
-        if (variables[input.name] === undefined) continue;
+        if (files.length < 0) {
+            return;
+        }
 
-        if (input.type === "radio") {
-            const value = variables[input.name];
+        const file = files[0];
 
-            if (input.value === `${value}`) {
-                input.checked = true;
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            console.log(e.target.result);
+
+            const json = JSON.parse(e.target.result);
+            setFormValues(json);
+        };
+
+        reader.readAsText(file);
+    });
+}
+
+function setFormValues(obj) {
+    const keys = Object.keys(obj);
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const inputs = document.getElementsByName(key);
+        if (inputs.length === 0) continue;
+
+        if (inputs.length > 1 && inputs[0].type === "radio") {
+            const value = `${obj[key]}`;
+
+            for (let j = 0; j < inputs.length; j++) {
+                const i = inputs[j];
+                if (i.value === value) i.checked = true;
             }
-
             continue;
         }
 
-        input.value = variables[input.name];
+        const input = inputs[0];
+
+        input.value = obj[key];
     }
+}
+function registerDefaultValues() {
+    // const inputs = document.getElementsByTagName("input");
+
+    // for (let i = 0; i < inputs.length; i++) {
+    //     const input = inputs[i];
+
+    //     if (state[input.name] === undefined) continue;
+
+    //     if (input.type === "radio") {
+    //         const value = state[input.name];
+
+    //         if (input.value === `${value}`) {
+    //             input.checked = true;
+    //         }
+
+    //         continue;
+    //     }
+
+    //     input.value = state[input.name];
+    // }
+
+    setFormValues(state);
+}
+
+function formatNumberWithUnderscores(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "_");
 }

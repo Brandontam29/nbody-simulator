@@ -68,15 +68,6 @@ impl std::ops::Sub for Vector2 {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct ParticleArgs {
-    pub diameter: f64,
-    pub mass: f64,
-    pub position: Vector2,
-    pub velocity: Vector2,
-    pub color: [f32; 3],
-}
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 
 pub struct Particle {
     id: i32,
@@ -99,8 +90,8 @@ impl fmt::Display for Particle {
 
 impl Particle {
     pub fn new(
-        diameter: f64,
         mass: f64,
+        diameter: f64,
         position: Vector2,
         velocity: Vector2,
         color: [f32; 3],
@@ -126,9 +117,9 @@ impl Particle {
         let mut rng = rand::thread_rng();
         let id = rng.gen::<i32>();
 
-        let m = ((rng.gen::<f64>() - 0.5) * mass_deviation / 100.0 * mass).floor() + mass;
+        let m = ((rng.gen::<f64>() - 0.5) * mass_deviation / 100.0 * mass * 2.0).floor() + mass;
 
-        let diameter = diameter * m / mass;
+        let d = diameter * m / mass; //diameter based on mass
 
         let position = Vector2 {
             x: rng.gen::<f64>() * world_size.x,
@@ -146,7 +137,7 @@ impl Particle {
         return Particle {
             id,
             mass: m,
-            diameter,
+            diameter: d,
             position,
             velocity,
             color,
