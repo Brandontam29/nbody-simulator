@@ -1,0 +1,51 @@
+name: Build and Deploy
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+
+            - name: rust-toolchain
+              uses: actions-rs/toolchain@v1.0.6
+              with:
+                  profile: minimal
+                  toolchain: stable
+                  override: true
+
+            - name: Install wasm-pack
+              uses: jetli/wasm-pack-action@v0.4.0
+              with:
+                  version: "latest"
+
+            - name: Build WASM
+              run: wasm-pack build --target web
+              working-directory: ./nbody_simulator
+
+            - name: Install dependencies
+              run: npm install
+              working-directory: ./web
+
+            - name: Build Tailwind CSS
+              run: npx tailwindcss -i ./src/app.css -o ./src/tailwind.css --minify
+              working-directory: ./web
+
+            - name: Prepare dist directory
+              run: |
+                  mkdir -p dist/web/src
+                  mkdir -p dist/nbody_simulator/pkg
+                  cp -R ./web/src/ dist/
+                  cp -R ./nbody_simulator/pkg dist/nbody_simulator/pkg
+              shell: bash
