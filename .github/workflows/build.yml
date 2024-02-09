@@ -13,7 +13,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Set up Node.js
+            - name: Setup NodeJS
               uses: actions/setup-node@v4
               with:
                   node-version: 18
@@ -35,7 +35,7 @@ jobs:
               working-directory: ./nbody_simulator
 
             - name: Install dependencies
-              run: npm install
+              run: npm ci
               working-directory: ./web
 
             - name: Build Tailwind CSS
@@ -49,3 +49,14 @@ jobs:
                   cp -R ./web/src/ dist/
                   cp -R ./nbody_simulator/pkg dist/nbody_simulator/pkg
               shell: bash
+
+            - name: Install Netlify
+              run: npm i netlify-cli@17.16.1 -g
+
+            - name: Deploy to Netlify
+              id: netlify_deploy
+              run: |
+                  netlify deploy \
+                    --dir dist \
+                    --site ${{ secrets.NETLIFY_SITE_ID }} \
+                    --auth ${{ secrets.NETLIFY_API_TOKEN }}
