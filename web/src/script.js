@@ -2,7 +2,7 @@ import { Stats } from "./stats.js";
 import init, {
     generate_particles,
     next_nbody_positions,
-} from "../../nbody_simulator/pkg/nbody_simulator.js";
+} from "./wasm/nbody_simulator.js";
 
 import state from "./form-state.js";
 import appState from "./app-state.js";

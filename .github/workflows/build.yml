@@ -47,7 +47,7 @@ jobs:
                   mkdir -p dist/web/src
                   mkdir -p dist/nbody_simulator/pkg
                   cp -R ./web/src/ dist/
-                  cp -R ./nbody_simulator/pkg dist/nbody_simulator/pkg
+                  cp -R ./nbody_simulator/pkg dist/nbody_simulator
               shell: bash
 
             - name: Install Netlify
