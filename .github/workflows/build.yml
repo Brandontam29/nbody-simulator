@@ -31,7 +31,7 @@ jobs:
                   version: "latest"
 
             - name: Build WASM
-              run: wasm-pack build --target web --out-dir ../../web/src/wasm
+              run: wasm-pack build --target web
               working-directory: ./nbody_simulator
 
             - name: Install dependencies
@@ -44,8 +44,8 @@ jobs:
 
             - name: Prepare dist directory
               run: |
-                  mkdir -p dist/web/src
-                  mkdir -p dist/nbody_simulator/pkg
+                  mkdir -p dist/
+                  mkdir -p dist/wasm/
                   cp -R ./web/src/* dist/
                   cp -R ./nbody_simulator/pkg/* dist/wasm/
               shell: bash
