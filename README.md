@@ -7,7 +7,9 @@ NBody simulator on a HTML canvas where all calculation are performed via WASM Ru
 
 Right now, it is O(n^2). We calculate the gravity force of every particle from every other particle (bad).
 
-This will also use the Barnes-Hut Algorithm to reduce the time complexity to O(n logn). In short, this algorithm separates each node into a unique quadtree which makes it very simple to search for particles that are at meaningful distances. This would be the case for gravity, a force that gets exponentially weaker in regards to distance and collision.
+This will also use the Barnes-Hut Algorithm to reduce the time complexity to O(n logn). In short, this algorithm separates each node into a unique quadtree which makes it very simple to search for particles that are at meaningful distances. This would be the case for gravity, a force that gets exponentially weaker in regards to distance and collision. [Detailed explanation](http://arborjs.org/docs/barnes-hut)
+
+
 
 
 ### Build, CI, CD
