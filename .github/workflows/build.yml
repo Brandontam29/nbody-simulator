@@ -31,7 +31,7 @@ jobs:
                   version: "latest"
 
             - name: Build WASM
-              run: wasm-pack build --target web
+              run: wasm-pack build --target web --out-dir ../../web/src/wasm
               working-directory: ./nbody_simulator
 
             - name: Install dependencies
@@ -46,8 +46,8 @@ jobs:
               run: |
                   mkdir -p dist/web/src
                   mkdir -p dist/nbody_simulator/pkg
-                  cp -R ./web/src/ dist/
-                  cp -R ./nbody_simulator/pkg dist/nbody_simulator
+                  cp -R ./web/src/* dist/
+                  cp -R ./nbody_simulator/pkg/* dist/wasm/
               shell: bash
 
             - name: Install Netlify
@@ -56,7 +56,7 @@ jobs:
             - name: Deploy to Netlify
               id: netlify_deploy
               run: |
-                  netlify deploy \
+                  netlify deploy --prod\
                     --dir dist \
                     --site ${{ secrets.NETLIFY_SITE_ID }} \
                     --auth ${{ secrets.NETLIFY_API_TOKEN }}
