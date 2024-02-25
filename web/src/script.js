@@ -2,6 +2,7 @@ import { Stats } from "./stats.js";
 import init, {
     generate_particles,
     next_nbody_positions,
+    next_nbody_positions_fast,
 } from "./wasm/nbody_simulator.js";
 
 import state from "./form-state.js";
@@ -46,7 +47,16 @@ document.addEventListener("DOMContentLoaded", (_event) => {
         setInterval(async () => {
             if (!appState.play) return;
 
+            // appState.particles = await next_nbody_positions(
+            //     { x: state.canvasWidth, y: state.canvasWidth },
+            //     appState.particles,
+            //     state.gravity,
+            //     state.epsilon,
+            //     state.timeStep
+            // );
+
             appState.particles = await next_nbody_positions(
+                { x: state.canvasWidth, y: state.canvasWidth },
                 appState.particles,
                 state.gravity,
                 state.epsilon,
@@ -313,6 +323,6 @@ function registerDefaultValues() {
     setFormValues(state);
 }
 
-function formatNumberWithUnderscores(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "_");
-}
+// function formatNumberWithUnderscores(number) {
+//     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "_");
+// }

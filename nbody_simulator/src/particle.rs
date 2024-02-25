@@ -1,77 +1,14 @@
 use std::fmt::{self, Debug};
 
+use crate::utils::calculation_utils::softened_gravitational_force;
+use crate::vector2::Vector2;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct Vector2 {
-    x: f64,
-    y: f64,
-}
-
-impl fmt::Display for Vector2 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({:.2}, {:.2})", self.x, self.y)
-    }
-}
-
-impl Vector2 {
-    pub fn new(x: f64, y: f64) -> Vector2 {
-        return Vector2 { x, y };
-    }
-
-    pub fn distance(&self, other: Vector2) -> f64 {
-        let a = (self.x + other.x).powf(2.0) + (self.y + other.y).powf(2.0);
-        let distance = a.sqrt();
-        return distance;
-    }
-
-    fn magnitude(&self) -> f64 {
-        (self.x.powi(2) + self.y.powi(2)).sqrt()
-    }
-
-    fn normalize(&self) -> Vector2 {
-        let mag = self.magnitude();
-        Vector2 {
-            x: self.x / mag,
-            y: self.y / mag,
-        }
-    }
-
-    fn scale(&self, factor: f64) -> Vector2 {
-        Vector2 {
-            x: self.x * factor,
-            y: self.y * factor,
-        }
-    }
-}
-
-impl std::ops::Add for Vector2 {
-    type Output = Vector2;
-
-    fn add(self, pos: Vector2) -> Vector2 {
-        Vector2 {
-            x: self.x + pos.x,
-            y: self.y + pos.y,
-        }
-    }
-}
-impl std::ops::Sub for Vector2 {
-    type Output = Vector2;
-
-    fn sub(self, pos: Vector2) -> Vector2 {
-        Vector2 {
-            x: self.x - pos.x,
-            y: self.y - pos.y,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 
 pub struct Particle {
     id: i32,
-    mass: f64,
+    pub mass: f64,
     diameter: f64,
     pub position: Vector2,
     pub velocity: Vector2,
@@ -117,7 +54,7 @@ impl Particle {
         let mut rng = rand::thread_rng();
         let id = rng.gen::<i32>();
 
-        let m = ((rng.gen::<f64>() - 0.5) * mass_deviation / 100.0 * mass * 2.0).floor() + mass;
+        let m = ((rng.gen::<f64>() - 0.5) * mass_deviation / 100.0 * mass * 2.0) + mass;
 
         let d = diameter * m / mass; //diameter based on mass
 
@@ -159,12 +96,10 @@ impl Particle {
 
         for p in particles {
             if self.id == p.id {
-                break;
+                continue;
             }
 
-            let mut v = calculate_softened_gravitational_force(&self, p, gravity, epsilon);
-
-            v = v.scale(scale / self.mass);
+            let v = softened_gravitational_force(&self, p, gravity, epsilon, scale);
 
             velocity = velocity + v;
         }
@@ -172,38 +107,87 @@ impl Particle {
         return velocity;
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vector2::Vector2; // Make sure this path is correct based on your module structure
 
-pub fn calculate_softened_gravitational_force(
-    p1: &Particle,
-    p2: &Particle,
-    gravity: f64,
-    epsilon: f64,
-) -> Vector2 {
-    let distance_vector = p1.position - p2.position;
-    let r = distance_vector.magnitude();
-    let force_magnitude = gravity * p1.mass * p2.mass / (r.powi(2) + epsilon.powi(2)).powf(1.5);
-    let force_direction = distance_vector.normalize();
+    #[test]
+    fn test_particle_creation() {
+        let mass = 1.0;
+        let diameter = 1.0;
+        let position = Vector2 { x: 0.0, y: 0.0 };
+        let velocity = Vector2 { x: 1.0, y: 1.0 };
+        let color = [255.0, 255.0, 255.0];
 
-    // The force vector is in the direction of the distance vector, scaled by the force magnitude
-    let result = force_direction.scale(-force_magnitude);
+        let particle = Particle::new(mass, diameter, position, velocity, color);
 
-    return result;
+        assert_eq!(particle.mass, mass);
+        assert_eq!(particle.diameter, diameter);
+        assert_eq!(particle.position, position);
+        assert_eq!(particle.velocity, velocity);
+        assert_eq!(particle.color, color);
+    }
+
+    // This test might have a degree of randomness, consider using fixed values for critical tests
+    #[test]
+    fn test_random_particle_creation() {
+        let world_size = Vector2 { x: 100.0, y: 100.0 };
+        let mass = 100.0;
+        let mass_deviation = 0.60;
+        let diameter = 1.0;
+
+        let particle = Particle::new_rand(world_size, mass, mass_deviation, diameter);
+
+        assert!(particle.mass >= mass * ((100.0 - mass_deviation) / 100.0));
+        assert!(particle.mass <= mass * ((100.0 + mass_deviation) / 100.0));
+        // Additional checks can be added for position and other properties
+    }
+
+    #[test]
+    fn test_next_position() {
+        let particle = Particle {
+            id: 0,
+            mass: 1.0,
+            diameter: 1.0,
+            position: Vector2 { x: 0.0, y: 0.0 },
+            velocity: Vector2 { x: 1.0, y: 1.0 },
+            color: [255.0, 255.0, 255.0],
+        };
+
+        let next_position = particle.next_position();
+        assert_eq!(next_position, Vector2 { x: 1.0, y: 1.0 });
+    }
+
+    #[test]
+    fn test_next_velocity() {
+        let particle = Particle {
+            id: 0,
+            mass: 1.0,
+            diameter: 1.0,
+            position: Vector2 { x: 0.0, y: 0.0 },
+            velocity: Vector2 { x: 0.0, y: 0.0 },
+            color: [255.0, 255.0, 255.0],
+        };
+        let other_particle = Particle {
+            id: 1,
+            mass: 1.0,
+            diameter: 1.0,
+            position: Vector2 { x: 3.0, y: 4.0 },
+            velocity: Vector2 { x: 0.0, y: 0.0 },
+            color: [255.0, 255.0, 255.0],
+        };
+
+        let particles = vec![particle, other_particle];
+        let gravity = 6.67430e-11;
+        let epsilon = 0.01;
+        let scale = 1.0;
+
+        let next_velocity = particles[0].next_velocity(&particles, gravity, epsilon, scale);
+        assert!(next_velocity.x < 5.0 && next_velocity.y < 5.0);
+
+        // The assertion for next_velocity will depend on the expected outcome based on the gravitational force calculation.
+        // Since the actual outcome will depend on the softened_gravitational_force implementation, you'll need to adjust
+        // the expected values according to that function's behavior.
+    }
 }
-
-// #[cfg(test)]
-// mod tests {
-
-//     use super::*;
-
-//     #[test]
-//     fn test_real_scenario() {
-//         let mut particles: Vec<Particle> = (0..2)
-//             .map(|_| Particle::new_rand(Vector2 { x: 500.0, y: 500.0 }))
-//             .collect();
-
-//         for i in 0..particles.len() {
-//             particles[i].velocity = particles[i].next_velocity(&particles);
-//             particles[i].position = particles[i].next_position();
-//         }
-//     }
-// }

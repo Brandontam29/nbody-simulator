@@ -1,8 +1,16 @@
 mod particle;
+mod quad_tree;
+mod quadrant;
+mod rectangle;
+mod utils;
+mod vector2;
 
 extern crate wasm_bindgen;
 
-use particle::{Particle, Vector2};
+use particle::Particle;
+use quad_tree::QuadTree;
+use rectangle::Rectangle;
+use vector2::Vector2;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -47,6 +55,7 @@ pub fn generate_particles(
 
 #[wasm_bindgen]
 pub fn next_nbody_positions(
+    _world_size_js: JsValue,
     particles_js: JsValue,
     gravity_js: JsValue,
     epsilon_js: JsValue,
@@ -60,6 +69,40 @@ pub fn next_nbody_positions(
 
     for i in 0..particles.len() {
         particles[i].velocity = particles[i].next_velocity(&particles, gravity, epsilon, scale);
+        particles[i].position = particles[i].next_position();
+    }
+
+    return Ok(serde_wasm_bindgen::to_value(&particles)?);
+}
+
+#[wasm_bindgen]
+pub fn next_nbody_positions_fast(
+    world_size_js: JsValue,
+    particles_js: JsValue,
+    gravity_js: JsValue,
+    epsilon_js: JsValue,
+    scale_js: JsValue,
+    // _collision_js: JsValue,
+) -> Result<JsValue, JsValue> {
+    let boundary: Vector2 = serde_wasm_bindgen::from_value(world_size_js)?;
+    let mut particles: Vec<Particle> = serde_wasm_bindgen::from_value(particles_js)?;
+    let gravity: f64 = serde_wasm_bindgen::from_value(gravity_js)?;
+    let epsilon: f64 = serde_wasm_bindgen::from_value(epsilon_js)?;
+    let scale: f64 = serde_wasm_bindgen::from_value(scale_js)?;
+
+    let r = Rectangle::new(Vector2 { x: 0.0, y: 0.0 }, boundary.x, boundary.y);
+
+    let mut q = QuadTree::new(r);
+
+    for i in 0..particles.len() {
+        q.insert(particles[i])
+    }
+
+    for i in 0..particles.len() {
+        let mut velocity = Vector2 { x: 0.0, y: 0.0 };
+
+        q.compute_force(&particles[i], gravity, epsilon, scale, &mut velocity);
+        particles[i].velocity = particles[i].velocity + velocity;
         particles[i].position = particles[i].next_position();
     }
 

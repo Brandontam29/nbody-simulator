@@ -13,3 +13,6 @@ rand = "0.8.5"
 serde = { version = "1.0.196", features = ["derive"] }
 serde-wasm-bindgen = "0.6.3"
 wasm-bindgen = { version = "0.2.90", features = ["serde-serialize"] }
+
+[dev-dependencies]
+approx = "0.5.1"
