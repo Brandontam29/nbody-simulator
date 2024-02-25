@@ -161,23 +161,21 @@ mod tests {
 
     #[test]
     fn test_next_velocity() {
-        let particle = Particle {
-            id: 0,
-            mass: 1.0,
-            diameter: 1.0,
-            position: Vector2 { x: 0.0, y: 0.0 },
-            velocity: Vector2 { x: 0.0, y: 0.0 },
-            color: [255.0, 255.0, 255.0],
-        };
-        let other_particle = Particle {
-            id: 1,
-            mass: 1.0,
-            diameter: 1.0,
-            position: Vector2 { x: 3.0, y: 4.0 },
-            velocity: Vector2 { x: 0.0, y: 0.0 },
-            color: [255.0, 255.0, 255.0],
-        };
+        let particle = Particle::new(
+            1.0,
+            1.0,
+            Vector2 { x: 0.0, y: 0.0 },
+            Vector2 { x: 0.0, y: 0.0 },
+            [255.0, 255.0, 255.0],
+        );
 
+        let other_particle = Particle::new(
+            1.0,
+            1.0,
+            Vector2 { x: 3.0, y: 4.0 },
+            Vector2 { x: 0.0, y: 0.0 },
+            [255.0, 255.0, 255.0],
+        );
         let particles = vec![particle, other_particle];
         let gravity = 6.67430e-11;
         let epsilon = 0.01;

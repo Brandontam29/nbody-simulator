@@ -114,6 +114,35 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_quadtree_initialization() {
+        let boundary = Rectangle::new(Vector2::new(0.0, 0.0), 100.0, 100.0);
+        let quadtree = QuadTree::new(boundary);
+
+        assert_eq!(quadtree.total_mass, 0.0);
+        assert_eq!(quadtree.center_of_mass, Vector2 { x: 0.0, y: 0.0 });
+        assert!(matches!(quadtree.children[0], QuadNode::Empty));
+        // Check other children similarly
+    }
+
+    #[test]
+    fn test_particle_insertion_and_mass_update() {
+        let mut quadtree = QuadTree::new(Rectangle::new(Vector2::new(0.0, 0.0), 100.0, 100.0));
+        let particle = Particle::new(
+            1.0,
+            1.0,
+            Vector2 { x: 25.0, y: 25.0 },
+            Vector2 { x: 0.0, y: 0.0 },
+            [255.0, 255.0, 255.0],
+        ); // Simplified Particle constructor
+
+        quadtree.insert(particle);
+
+        assert!(matches!(quadtree.children[0], QuadNode::Leaf(_))); // Assuming NW quadrant
+        assert_eq!(quadtree.total_mass, 1.0);
+        assert_eq!(quadtree.center_of_mass, Vector2::new(25.0, 25.0));
+    }
+
+    #[test]
     fn test_real_scenario() {
         let mut particles: Vec<Particle> = (0..4)
             .map(|_| Particle::new_rand(Vector2 { x: 700.0, y: 700.0 }, 100.0, 0.0, 10.0))
