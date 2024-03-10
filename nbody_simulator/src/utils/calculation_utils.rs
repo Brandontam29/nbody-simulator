@@ -8,42 +8,46 @@ pub fn softened_gravitational_force(
     epsilon: f64,
     scale: f64,
 ) -> Vector2 {
+    // println!("p1 {};p2 {}", p1.position, p2.position);
+
     if p1.position.x == p2.position.x && p1.position.y == p2.position.y {
         return Vector2 { x: 0.0, y: 0.0 };
     }
 
     let distance_vector = p1.position - p2.position;
+    // println!("distance_vector {} ", distance_vector);
 
     let r = distance_vector.magnitude();
+    // println!("r {} ", r);
     let force_magnitude = gravity * p1.mass * p2.mass / (r.powi(2) + epsilon.powi(2)).powf(1.5);
+    // println!("force_magnitude {} ", force_magnitude);
     let force_direction = distance_vector.normalize();
-
-    // The force vector is in the direction of the distance vector, scaled by the force magnitude
+    // println!("force_direction {} ", force_direction);
     let v = force_direction.scale(-force_magnitude);
-
+    // println!("v {} ", v);
+    // println!("scaled_v {} ", v.scale(scale / p1.mass));
     return v.scale(scale / p1.mass);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::assert_relative_eq; // Using `approx` crate for floating point comparisons
 
     #[test]
     fn test_softened_gravitational_force() {
         let p1 = Particle::new(
-            1.0,
-            1.0,
+            2.8121667702779295e+30,
+            1967738920.8774006,
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
-            [1.0, 1.0, 1.0],
+            [100.0, 100.0, 100.0],
         );
         let p2 = Particle::new(
-            1.0,
-            1.0,
+            3.112157648312442e+30,
+            2177649560.9061766,
             Vector2::new(3.0, 4.0),
             Vector2::new(0.0, 0.0),
-            [1.0, 1.0, 1.0],
+            [100.0, 100.0, 100.0],
         );
 
         let gravity = 6.67430e-11;
@@ -61,7 +65,7 @@ mod tests {
             .scale(scale / p1.mass);
 
         // Using assert_relative_eq from the `approx` crate for floating point comparison
-        assert_relative_eq!(result_force.x, expected_force.x, epsilon = 1e-9);
-        assert_relative_eq!(result_force.y, expected_force.y, epsilon = 1e-9);
+        assert_eq!(result_force.x, expected_force.x);
+        assert_eq!(result_force.y, expected_force.y);
     }
 }

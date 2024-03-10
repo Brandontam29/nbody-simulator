@@ -47,15 +47,8 @@ document.addEventListener("DOMContentLoaded", (_event) => {
         setInterval(async () => {
             if (!appState.play) return;
 
-            // appState.particles = await next_nbody_positions(
-            //     { x: state.canvasWidth, y: state.canvasWidth },
-            //     appState.particles,
-            //     state.gravity,
-            //     state.epsilon,
-            //     state.timeStep
-            // );
-
-            appState.particles = await next_nbody_positions(
+     
+            appState.particles = await next_nbody_positions_fast(
                 { x: state.canvasWidth, y: state.canvasWidth },
                 appState.particles,
                 state.gravity,

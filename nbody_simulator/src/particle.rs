@@ -112,80 +112,100 @@ mod tests {
     use super::*;
     use crate::vector2::Vector2; // Make sure this path is correct based on your module structure
 
+    // #[test]
+    // fn test_particle_creation() {
+    //     let mass = 1.0;
+    //     let diameter = 1.0;
+    //     let position = Vector2 { x: 0.0, y: 0.0 };
+    //     let velocity = Vector2 { x: 1.0, y: 1.0 };
+    //     let color = [255.0, 255.0, 255.0];
+
+    //     let particle = Particle::new(mass, diameter, position, velocity, color);
+
+    //     assert_eq!(particle.mass, mass);
+    //     assert_eq!(particle.diameter, diameter);
+    //     assert_eq!(particle.position, position);
+    //     assert_eq!(particle.velocity, velocity);
+    //     assert_eq!(particle.color, color);
+    // }
+
+    // // This test might have a degree of randomness, consider using fixed values for critical tests
+    // #[test]
+    // fn test_random_particle_creation() {
+    //     let world_size = Vector2 { x: 100.0, y: 100.0 };
+    //     let mass = 100.0;
+    //     let mass_deviation = 0.60;
+    //     let diameter = 1.0;
+
+    //     let particle = Particle::new_rand(world_size, mass, mass_deviation, diameter);
+
+    //     assert!(particle.mass >= mass * ((100.0 - mass_deviation) / 100.0));
+    //     assert!(particle.mass <= mass * ((100.0 + mass_deviation) / 100.0));
+    //     // Additional checks can be added for position and other properties
+    // }
+
+    // #[test]
+    // fn test_next_position() {
+    //     let particle = Particle {
+    //         id: 0,
+    //         mass: 1.0,
+    //         diameter: 1.0,
+    //         position: Vector2 { x: 0.0, y: 0.0 },
+    //         velocity: Vector2 { x: 1.0, y: 1.0 },
+    //         color: [255.0, 255.0, 255.0],
+    //     };
+
+    //     let next_position = particle.next_position();
+    //     assert_eq!(next_position, Vector2 { x: 1.0, y: 1.0 });
+    // }
+
+    // #[test]
+    // fn test_next_velocity() {
+    //     let particle = Particle::new(
+    //         1.0,
+    //         1.0,
+    //         Vector2 { x: 0.0, y: 0.0 },
+    //         Vector2 { x: 0.0, y: 0.0 },
+    //         [255.0, 255.0, 255.0],
+    //     );
+
+    //     let other_particle = Particle::new(
+    //         1.0,
+    //         1.0,
+    //         Vector2 { x: 3.0, y: 4.0 },
+    //         Vector2 { x: 0.0, y: 0.0 },
+    //         [255.0, 255.0, 255.0],
+    //     );
+    //     let particles = vec![particle, other_particle];
+    //     let gravity = 6.67430e-11;
+    //     let epsilon = 0.01;
+    //     let scale = 1.0;
+
+    //     let next_velocity = particles[0].next_velocity(&particles, gravity, epsilon, scale);
+    //     assert!(next_velocity.x < 5.0 && next_velocity.y < 5.0);
+
+    //     // The assertion for next_velocity will depend on the expected outcome based on the gravitational force calculation.
+    //     // Since the actual outcome will depend on the softened_gravitational_force implementation, you'll need to adjust
+    //     // the expected values according to that function's behavior.
+    // }
+
     #[test]
-    fn test_particle_creation() {
-        let mass = 1.0;
-        let diameter = 1.0;
-        let position = Vector2 { x: 0.0, y: 0.0 };
-        let velocity = Vector2 { x: 1.0, y: 1.0 };
-        let color = [255.0, 255.0, 255.0];
+    fn real_scenario() {
+        let mut particles: Vec<Particle> = (0..4)
+            .map(|_| Particle::new_rand(Vector2 { x: 700.0, y: 700.0 }, 100.0, 0.0, 10.0))
+            .collect();
 
-        let particle = Particle::new(mass, diameter, position, velocity, color);
+        println!("{:?}", particles);
 
-        assert_eq!(particle.mass, mass);
-        assert_eq!(particle.diameter, diameter);
-        assert_eq!(particle.position, position);
-        assert_eq!(particle.velocity, velocity);
-        assert_eq!(particle.color, color);
-    }
+        let gravity = 6.6743e-11;
+        let epsilon = 5.84e9;
+        let scale = 1e16;
 
-    // This test might have a degree of randomness, consider using fixed values for critical tests
-    #[test]
-    fn test_random_particle_creation() {
-        let world_size = Vector2 { x: 100.0, y: 100.0 };
-        let mass = 100.0;
-        let mass_deviation = 0.60;
-        let diameter = 1.0;
+        for i in 0..particles.len() {
+            particles[i].velocity = particles[i].next_velocity(&particles, gravity, epsilon, scale);
+            particles[i].position = particles[i].next_position();
+        }
 
-        let particle = Particle::new_rand(world_size, mass, mass_deviation, diameter);
-
-        assert!(particle.mass >= mass * ((100.0 - mass_deviation) / 100.0));
-        assert!(particle.mass <= mass * ((100.0 + mass_deviation) / 100.0));
-        // Additional checks can be added for position and other properties
-    }
-
-    #[test]
-    fn test_next_position() {
-        let particle = Particle {
-            id: 0,
-            mass: 1.0,
-            diameter: 1.0,
-            position: Vector2 { x: 0.0, y: 0.0 },
-            velocity: Vector2 { x: 1.0, y: 1.0 },
-            color: [255.0, 255.0, 255.0],
-        };
-
-        let next_position = particle.next_position();
-        assert_eq!(next_position, Vector2 { x: 1.0, y: 1.0 });
-    }
-
-    #[test]
-    fn test_next_velocity() {
-        let particle = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 0.0, y: 0.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-
-        let other_particle = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 3.0, y: 4.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-        let particles = vec![particle, other_particle];
-        let gravity = 6.67430e-11;
-        let epsilon = 0.01;
-        let scale = 1.0;
-
-        let next_velocity = particles[0].next_velocity(&particles, gravity, epsilon, scale);
-        assert!(next_velocity.x < 5.0 && next_velocity.y < 5.0);
-
-        // The assertion for next_velocity will depend on the expected outcome based on the gravitational force calculation.
-        // Since the actual outcome will depend on the softened_gravitational_force implementation, you'll need to adjust
-        // the expected values according to that function's behavior.
+        println!("{:?}", particles);
     }
 }

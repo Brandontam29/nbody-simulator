@@ -74,7 +74,6 @@ pub fn next_nbody_positions(
 
     return Ok(serde_wasm_bindgen::to_value(&particles)?);
 }
-
 #[wasm_bindgen]
 pub fn next_nbody_positions_fast(
     world_size_js: JsValue,
@@ -92,7 +91,7 @@ pub fn next_nbody_positions_fast(
 
     let r = Rectangle::new(Vector2 { x: 0.0, y: 0.0 }, boundary.x, boundary.y);
 
-    let mut q = QuadTree::new(r);
+    let mut q: QuadTree = QuadTree::new(r);
 
     for i in 0..particles.len() {
         q.insert(particles[i])
