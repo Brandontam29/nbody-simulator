@@ -74,9 +74,8 @@ impl QuadTree {
         gravity: f64,
         epsilon: f64,
         scale: f64,
-        vector: &mut Vector2,
-    ) {
-        // println!("{}", vector);
+    ) -> Vector2 {
+        let mut total_v = Vector2::new(0.0, 0.0);
         for i in 0..4 {
             let quad_node = &self.children[i];
 
@@ -86,25 +85,26 @@ impl QuadTree {
                 QuadNode::Leaf(p) => {
                     let v = softened_gravitational_force(&p, &particle, gravity, scale, epsilon);
 
-                    // println!("{} {} {}", particle.position, p.position, v);
-
-                    vector.x += v.x;
-                    vector.y += v.y;
+                    total_v = total_v + v;
                 }
 
                 QuadNode::Internal(quad_tree) => {
-                    // let s = (self.boundary.width + self.boundary.width) / 2.0;
-                    // let d = self.center_of_mass.distance(&particle.position);
-                    // let sd: f64 = s / d;
+                    let s = (self.boundary.width + self.boundary.width) / 2.0;
+                    let d = self.center_of_mass.distance(&particle.position);
+                    let sd: f64 = s / d;
 
-                    // let threshold = 0.000000000000001;
+                    let threshold = 0.0;
 
-                    // if sd > threshold {
-                    quad_tree.compute_force(particle, gravity, epsilon, scale, vector);
-                    // }
+                    if sd > threshold {
+                        let v = quad_tree.compute_force(particle, gravity, epsilon, scale);
+
+                        total_v = total_v + v;
+                    }
                 }
             }
         }
+        // println!("total_v: {}", total_v);
+        return total_v;
     }
 }
 
@@ -204,48 +204,34 @@ mod tests {
 
         let r = Rectangle::new(Vector2 { x: 0.0, y: 0.0 }, 100.0, 100.0);
 
-        let mut quandtree: QuadTree = QuadTree::new(r);
+        let mut quadtree: QuadTree = QuadTree::new(r);
 
         for i in 0..particles.len() {
-            quandtree.insert(particles[i]);
+            quadtree.insert(particles[i]);
         }
 
         for i in 0..particles.len() {
-            println!("{}", particles[i].velocity);
-        }
-
-        for i in 0..particles.len() {
-            let mut velocity = Vector2 { x: 0.0, y: 0.0 };
-
-            quandtree.compute_force(&particles[i], 10000.0, 10.0, 100.0, &mut velocity);
-            // println!("{}: {}", i, velocity);
+            let velocity = quadtree.compute_force(&particles[i], 10000.0, 10.0, 100.0);
 
             particles[i].velocity = particles[i].velocity + velocity;
             particles[i].position = particles[i].next_position();
+
+            println!("{}: {}", i, particles[i].position)
+        }
+
+        println!("round2");
+        let mut quadtree = QuadTree::new(r);
+
+        for i in 0..particles.len() {
+            quadtree.insert(particles[i])
         }
 
         for i in 0..particles.len() {
-            println!("{}", particles[i].velocity);
-        }
-        println!("2nd round");
-
-        let mut quandtree = QuadTree::new(r);
-
-        for i in 0..particles.len() {
-            quandtree.insert(particles[i])
-        }
-
-        for i in 0..particles.len() {
-            let mut velocity = Vector2 { x: 0.0, y: 0.0 };
-
-            quandtree.compute_force(&particles[i], 0.005, 5.0, 10.0, &mut velocity);
-            // println!("{}: {}", i, velocity);
+            let velocity = quadtree.compute_force(&particles[i], 0.005, 5.0, 10.0);
             particles[i].velocity = particles[i].velocity + velocity;
             particles[i].position = particles[i].next_position();
-        }
 
-        for i in 0..particles.len() {
-            println!("{}", particles[i].velocity);
+            println!("{}: {}", i, particles[i].position)
         }
     }
 }

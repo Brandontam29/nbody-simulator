@@ -14,105 +14,195 @@
                 <div id="stats-container" class="absolute top-0 right-0 w-[80px]"></div>
 
                 <canvas class="border border-blue-500"></canvas>
+
+                <span class="mt-4 isolate inline-flex rounded shadow-sm">
+                    <button
+                        id="play-pause"
+                        type="button"
+                        class="relative inline-flex items-center rounded-l bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+                    >
+                        Play/Pause
+                    </button>
+                    <button
+                        id="next-frame"
+                        type="button"
+                        class="relative -ml-px inline-flex items-center bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+                    >
+                        Next Frame
+                    </button>
+                    <button
+                        id="restart"
+                        type="button"
+                        class="relative -ml-px inline-flex items-center bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+                    >
+                        Restart
+                    </button>
+                    <button
+                        id="log-stats"
+                        type="button"
+                        class="relative -ml-px inline-flex items-center rounded-r bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+                    >
+                        Log Stats
+                    </button>
+                </span>
             </div>
 
             <div class="ml-4">
-                <form class="flex flex-col even:pb-2" id="parameter-form">
-                    <!-- <label for="canvasWidth">Canvas Width:</label>
-                <input
-                    class="p-1 border border-slate-400 rounded-sm"
-                    type="number"
-                    id="canvasWidth"
-                    name="canvasWidth"
-                />
-                <label for="canvasHeight">Canvas Height:</label>
-                <input
-                    class="p-1 border border-slate-400 rounded-sm"
-                    type="number"
-                    id="canvasHeight"
-                    name="canvasHeight"
-                /> -->
-
-                    <label for="particleAmount">Particle Amount:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="particleAmount"
-                        name="particleAmount"
-                    />
-                    <label for="gravity">Gravity:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="gravity"
-                        name="gravity"
-                    />
-                    <label for="epsilon">Epsilon:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="epsilon"
-                        name="epsilon"
-                    />
-                    <label for="mass">Mass:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="mass"
-                        name="mass"
-                    />
-                    <label for="massDeviation">Mass Deviation:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="massDeviation"
-                        name="massDeviation"
-                    />
-                    <label for="diameter">Diameter:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="diameter"
-                        name="diameter"
-                    />
-                    <label for="timeStep">Time Step:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="timeStep"
-                        name="timeStep"
-                    />
-                    <label for="updateFrequency">Update Frequency:</label>
-                    <input
-                        class="p-1 border border-slate-400 rounded-sm"
-                        type="number"
-                        id="updateFrequency"
-                        name="updateFrequency"
-                    />
-                    <div>Collision</div>
+                <form class="space-y-2" id="parameter-form">
                     <div>
-                        <input
-                            type="radio"
-                            id="collision-true"
-                            name="collision"
-                            value="true"
-                        />
-                        <label for="collision">True</label>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="particleAmount"
+                            >Particle Amount:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="particleAmount"
+                                name="particleAmount"
+                            />
+                        </div>
                     </div>
                     <div>
-                        <input
-                            type="radio"
-                            id="collision-false"
-                            name="collision"
-                            value="false"
-                        />
-                        <label for="collision">False</label>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="gravity"
+                            >Gravity:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="gravity"
+                                name="gravity"
+                                step="any"
+                            />
+                        </div>
                     </div>
-
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="epsilon"
+                            >Epsilon:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="epsilon"
+                                name="epsilon"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="mass"
+                            >Mass:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="mass"
+                                name="mass"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="massDeviation"
+                            >Mass Deviation:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="massDeviation"
+                                name="massDeviation"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="diameter"
+                            >Diameter:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="diameter"
+                                name="diameter"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="timeStep"
+                            >Time Step:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="timeStep"
+                                name="timeStep"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium leading-6 text-gray-900"
+                            for="updateFrequency"
+                            >Update Frequency:</label
+                        >
+                        <div class="">
+                            <input
+                                class="block w-full rounded px-2 border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                type="number"
+                                id="updateFrequency"
+                                name="updateFrequency"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        Collision
+                        <div>
+                            <input
+                                type="radio"
+                                id="collision-true"
+                                name="collision"
+                                value="true"
+                            />
+                            <label
+                                class="text-sm font-medium leading-6 text-gray-900"
+                                for="collision"
+                                >True</label
+                            >
+                        </div>
+                        <div>
+                            <input
+                                type="radio"
+                                id="collision-false"
+                                name="collision"
+                                value="false"
+                            />
+                            <label
+                                class="text-sm font-medium leading-6 text-gray-900"
+                                for="collision"
+                                >False</label
+                            >
+                        </div>
+                    </div>
                     <div>
                         <button
                             type="submit"
-                            class="bg-slate-200 p-2 border border-black rounded-sm inline-block"
+                            class="bg-slate-200 p-2 border border-black rounded inline-block"
                         >
                             Submit
                         </button>
@@ -120,7 +210,7 @@
                         <button
                             type="button"
                             id="save"
-                            class="bg-slate-200 p-2 border border-black rounded-sm inline-block"
+                            class="bg-slate-200 p-2 border border-black rounded inline-block"
                         >
                             Save
                         </button>
@@ -133,51 +223,55 @@
             </div>
         </div>
 
-        <div>
-            <button
-                id="play-pause"
-                type="button"
-                class="bg-slate-200 p-2 border border-black rounded-sm block"
+        <div class="fixed bottom-0 right-0 m-4 space-y-4">
+            <a
+                href="https://github.com/Brandontam29/nbody-simulator"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-400 hover:text-gray-500"
             >
-                Play/Pause
-            </button>
-            <button
-                id="next-frame"
-                type="button"
-                class="bg-slate-200 p-2 border border-black rounded-sm block"
-            >
-                Next Frame
-            </button>
-            <button
-                id="restart"
-                type="button"
-                class="bg-slate-200 p-2 border border-black rounded-sm block"
-            >
-                Restart
-            </button>
-            <button
-                id="log-stats"
-                type="button"
-                class="bg-slate-200 p-2 border border-black rounded-sm block"
-            >
-                Log Stats
-            </button>
-            <div>
-                <a
-                    href="https://github.com/Brandontam29/nbody-simulator"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >Github</a
+                <span class="sr-only">GitHub</span>
+                <svg
+                    class="h-8 w-8"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
                 >
-                <a
-                    href="https://www.linkedin.com/in/brandon--tam/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >Linkedin</a
+                    <path
+                        fill-rule="evenodd"
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </a>
+            <a
+                href="https://www.linkedin.com/in/brandon--tam"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-400 hover:text-gray-500"
+            >
+                <span class="sr-only">LinkedIn</span>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8"
+                    viewBox="0 0 48 48"
+                    fill="none"
                 >
-            </div>
+                    <circle cx="24" cy="24" r="20" fill="currentColor" />
+                    <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M18.7747 14.2839C18.7747 15.529 17.8267 16.5366 16.3442 16.5366C14.9194 16.5366 13.9713 15.529 14.0007 14.2839C13.9713 12.9783 14.9193 12 16.3726 12C17.8267 12 18.7463 12.9783 18.7747 14.2839ZM14.1199 32.8191V18.3162H18.6271V32.8181H14.1199V32.8191Z"
+                        fill="white"
+                    />
+                    <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M22.2393 22.9446C22.2393 21.1357 22.1797 19.5935 22.1201 18.3182H26.0351L26.2432 20.305H26.3322C26.9254 19.3854 28.4079 17.9927 30.8101 17.9927C33.7752 17.9927 35.9995 19.9502 35.9995 24.219V32.821H31.4922V24.7838C31.4922 22.9144 30.8404 21.6399 29.2093 21.6399C27.9633 21.6399 27.2224 22.4999 26.9263 23.3297C26.8071 23.6268 26.7484 24.0412 26.7484 24.4574V32.821H22.2411V22.9446H22.2393Z"
+                        fill="white"
+                    />
+                </svg>
+            </a>
         </div>
-
-        >
     </body>
 </html>

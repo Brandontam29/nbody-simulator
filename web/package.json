@@ -7,9 +7,9 @@
     "scripts": {
         "build-wasm": "wasm-pack build ../nbody_simulator/ --target web",
         "move-wasm": "mkdir -p ./src/wasm/ && cp -r ../nbody_simulator/pkg/* ./src/wasm/",
-        "dev": "npm run build-wasm && npm run move-wasm && npm run tw",
         "wasm": "npm run build-wasm && npm run move-wasm",
         "tw": "tailwindcss -i ./src/app.css -o ./src/tailwind.css --watch",
+        "dev": "npm run wasm && npm run tw",
         "tw:prod": "npx tailwindcss -i ./src/app.css -o ./src/tailwind.css --minify",
         "build": "npm run build-wasm && npm run move-wasm && npm run tw:prod"
     },
@@ -17,7 +17,7 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "@stylistic/eslint-plugin-js": "^1.6.2",
+        "@stylistic/eslint-plugin-js": "^1.6.3",
         "eslint": "^8.57.0",
         "tailwindcss": "^3.4.1"
     }

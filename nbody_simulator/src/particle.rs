@@ -195,8 +195,6 @@ mod tests {
             .map(|_| Particle::new_rand(Vector2 { x: 700.0, y: 700.0 }, 100.0, 0.0, 10.0))
             .collect();
 
-        println!("{:?}", particles);
-
         let gravity = 6.6743e-11;
         let epsilon = 5.84e9;
         let scale = 1e16;
@@ -205,7 +203,5 @@ mod tests {
             particles[i].velocity = particles[i].next_velocity(&particles, gravity, epsilon, scale);
             particles[i].position = particles[i].next_position();
         }
-
-        println!("{:?}", particles);
     }
 }

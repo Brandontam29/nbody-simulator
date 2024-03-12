@@ -98,11 +98,24 @@ pub fn next_nbody_positions_fast(
     }
 
     for i in 0..particles.len() {
-        let mut velocity = Vector2 { x: 0.0, y: 0.0 };
-
-        q.compute_force(&particles[i], gravity, epsilon, scale, &mut velocity);
+        let velocity = q.compute_force(&particles[i], gravity, epsilon, scale);
         particles[i].velocity = particles[i].velocity + velocity;
         particles[i].position = particles[i].next_position();
+    }
+
+    println!("round2");
+    let mut quadtree = QuadTree::new(r);
+
+    for i in 0..particles.len() {
+        quadtree.insert(particles[i])
+    }
+
+    for i in 0..particles.len() {
+        let velocity = quadtree.compute_force(&particles[i], 0.005, 5.0, 10.0);
+        particles[i].velocity = particles[i].velocity + velocity;
+        particles[i].position = particles[i].next_position();
+
+        println!("{}: {}", i, particles[i].position)
     }
 
     return Ok(serde_wasm_bindgen::to_value(&particles)?);
