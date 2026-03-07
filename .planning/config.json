@@ -1,0 +1,12 @@
+{
+  "workflow": "brownfield",
+  "tech_stack": {
+    "backend": "Rust (WASM)",
+    "frontend": "Vanilla JS / Canvas",
+    "styling": "TailwindCSS"
+  },
+  "preferences": {
+    "auto_commit": true,
+    "testing": "required"
+  }
+}
