@@ -75,6 +75,28 @@ impl QuadTree {
         epsilon: f64,
         scale: f64,
     ) -> Vector2 {
+        if self.total_mass == 0.0 {
+            return Vector2::new(0.0, 0.0);
+        }
+
+        let s = self.boundary.width;
+        let d = self.center_of_mass.distance(&particle.position);
+
+        // Barnes-Hut threshold
+        let theta = 0.5;
+
+        // If the node is far enough, use its center of mass as a single particle
+        if d > 0.0 && s / d < theta {
+            let cluster = Particle::new(
+                self.total_mass,
+                0.0,
+                self.center_of_mass,
+                Vector2::new(0.0, 0.0),
+                [0.0, 0.0, 0.0],
+            );
+            return softened_gravitational_force(&cluster, particle, gravity, epsilon, scale);
+        }
+
         let mut total_v = Vector2::new(0.0, 0.0);
         for i in 0..4 {
             let quad_node = &self.children[i];
@@ -83,27 +105,17 @@ impl QuadTree {
                 QuadNode::Empty => {}
 
                 QuadNode::Leaf(p) => {
-                    let v = softened_gravitational_force(&p, &particle, gravity, scale, epsilon);
+                    let v = softened_gravitational_force(p, particle, gravity, epsilon, scale);
 
                     total_v = total_v + v;
                 }
 
                 QuadNode::Internal(quad_tree) => {
-                    let s = (self.boundary.width + self.boundary.width) / 2.0;
-                    let d = self.center_of_mass.distance(&particle.position);
-                    let sd: f64 = s / d;
-
-                    let threshold = 0.0;
-
-                    if sd > threshold {
-                        let v = quad_tree.compute_force(particle, gravity, epsilon, scale);
-
-                        total_v = total_v + v;
-                    }
+                    let v = quad_tree.compute_force(particle, gravity, epsilon, scale);
+                    total_v = total_v + v;
                 }
             }
         }
-        // println!("total_v: {}", total_v);
         return total_v;
     }
 }

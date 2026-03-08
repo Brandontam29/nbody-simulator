@@ -75,17 +75,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_quadrant_to_rectangle_nw() {
+    fn test_quadrant_to_rectangle_all() {
         let rect = Rectangle {
             position: Vector2 { x: 0.0, y: 0.0 },
             width: 100.0,
             height: 100.0,
         };
-        let quadrant_rect = quadrant_to_rectangle(&rect, &Quadrant::NW);
-        assert_eq!(quadrant_rect.position.x, 0.0);
-        assert_eq!(quadrant_rect.position.y, 0.0);
-        assert_eq!(quadrant_rect.width, 50.0);
-        assert_eq!(quadrant_rect.height, 50.0);
+        
+        let nw = quadrant_to_rectangle(&rect, &Quadrant::NW);
+        assert_eq!(nw.position.x, 0.0);
+        assert_eq!(nw.position.y, 0.0);
+        
+        let ne = quadrant_to_rectangle(&rect, &Quadrant::NE);
+        assert_eq!(ne.position.x, 50.0);
+        assert_eq!(ne.position.y, 0.0);
+
+        let sw = quadrant_to_rectangle(&rect, &Quadrant::SW);
+        assert_eq!(sw.position.x, 0.0);
+        assert_eq!(sw.position.y, 50.0);
+
+        let se = quadrant_to_rectangle(&rect, &Quadrant::SE);
+        assert_eq!(se.position.x, 50.0);
+        assert_eq!(se.position.y, 50.0);
     }
 
     #[test]
@@ -95,11 +106,11 @@ mod tests {
             width: 100.0,
             height: 100.0,
         };
-        // Test for a position inside each quadrant
-        let nw_position = Vector2 { x: 25.0, y: 25.0 };
-        assert_eq!(find_quadrant(&boundary, &nw_position), Some(Quadrant::NW));
-
-        // Repeat for NE, SW, SE positions...
+        
+        assert_eq!(find_quadrant(&boundary, &Vector2 { x: 25.0, y: 25.0 }), Some(Quadrant::NW));
+        assert_eq!(find_quadrant(&boundary, &Vector2 { x: 75.0, y: 25.0 }), Some(Quadrant::NE));
+        assert_eq!(find_quadrant(&boundary, &Vector2 { x: 25.0, y: 75.0 }), Some(Quadrant::SW));
+        assert_eq!(find_quadrant(&boundary, &Vector2 { x: 75.0, y: 75.0 }), Some(Quadrant::SE));
     }
 
     #[test]

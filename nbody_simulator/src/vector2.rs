@@ -14,9 +14,7 @@ impl Vector2 {
     }
 
     pub fn distance(&self, other: &Vector2) -> f64 {
-        let a = (self.x + other.x).powf(2.0) + (self.y + other.y).powf(2.0);
-        let distance = a.sqrt();
-        return distance;
+        ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
     }
 
     pub fn magnitude(&self) -> f64 {
