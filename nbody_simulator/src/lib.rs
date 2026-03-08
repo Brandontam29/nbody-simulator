@@ -31,6 +31,38 @@ impl SimulationWrapper {
         let world_size = Vector2::new(world_width, world_height);
         self.inner.step(world_size, gravity, epsilon, scale);
     }
+
+    pub fn positions_x_ptr(&self) -> *const f32 {
+        self.inner.positions_x.as_ptr()
+    }
+
+    pub fn positions_y_ptr(&self) -> *const f32 {
+        self.inner.positions_y.as_ptr()
+    }
+
+    pub fn velocities_x_ptr(&self) -> *const f32 {
+        self.inner.velocities_x.as_ptr()
+    }
+
+    pub fn velocities_y_ptr(&self) -> *const f32 {
+        self.inner.velocities_y.as_ptr()
+    }
+
+    pub fn masses_ptr(&self) -> *const f32 {
+        self.inner.masses.as_ptr()
+    }
+
+    pub fn diameters_ptr(&self) -> *const f32 {
+        self.inner.diameters.as_ptr()
+    }
+
+    pub fn colors_ptr(&self) -> *const f32 {
+        self.inner.colors.as_ptr()
+    }
+
+    pub fn count(&self) -> usize {
+        self.inner.count
+    }
 }
 
 #[wasm_bindgen]
