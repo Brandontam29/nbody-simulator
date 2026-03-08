@@ -1,7 +1,6 @@
 use crate::rectangle::Rectangle;
-use crate::utils::calculation_utils::softened_gravitational_force;
 use crate::utils::quadrant_utils::{find_quadrant, quadrant_to_rectangle};
-use crate::{particle::Particle, vector2::Vector2};
+use crate::vector2::Vector2;
 
 #[derive(Debug)]
 pub enum QuadNode {
