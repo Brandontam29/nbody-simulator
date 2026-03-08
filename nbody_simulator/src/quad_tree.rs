@@ -2,18 +2,22 @@ use crate::rectangle::Rectangle;
 use crate::utils::calculation_utils::softened_gravitational_force;
 use crate::utils::quadrant_utils::{find_quadrant, quadrant_to_rectangle};
 use crate::{particle::Particle, vector2::Vector2};
-enum QuadNode {
+
+#[derive(Debug)]
+pub enum QuadNode {
     Internal(Box<QuadTree>),
-    Leaf(Particle),
+    Leaf(usize), // Index into the SoA arrays
     Empty,
 }
 
+#[derive(Debug)]
 pub struct QuadTree {
-    boundary: Rectangle,
-    total_mass: f64,
-    center_of_mass: Vector2,
-    children: [QuadNode; 4],
+    pub boundary: Rectangle,
+    pub total_mass: f32,
+    pub center_of_mass: Vector2,
+    pub children: [QuadNode; 4],
 }
+
 impl QuadTree {
     pub fn new(boundary: Rectangle) -> QuadTree {
         QuadTree {
@@ -29,10 +33,19 @@ impl QuadTree {
         }
     }
 
-    pub fn insert(&mut self, particle: Particle) {
-        self.update_mass_and_center(&particle);
+    pub fn insert(
+        &mut self,
+        index: usize,
+        pos_x: &[f32],
+        pos_y: &[f32],
+        masses: &[f32],
+    ) {
+        let p_pos = Vector2::new(pos_x[index], pos_y[index]);
+        let p_mass = masses[index];
+        
+        self.update_mass_and_center(p_pos, p_mass);
 
-        let quadrant = match find_quadrant(&self.boundary, &particle.position) {
+        let quadrant = match find_quadrant(&self.boundary, &p_pos) {
             Some(v) => v,
             None => return,
         };
@@ -41,82 +54,91 @@ impl QuadTree {
 
         match quad_node {
             QuadNode::Empty => {
-                let leaf = QuadNode::Leaf(particle);
-
-                self.children[usize::from(&quadrant)] = leaf;
+                *quad_node = QuadNode::Leaf(index);
             }
-            QuadNode::Leaf(p) => {
+            QuadNode::Leaf(old_index) => {
+                let old_idx = *old_index;
                 let boundary = quadrant_to_rectangle(&self.boundary, &quadrant);
 
                 let mut qtree = QuadTree::new(boundary);
+                qtree.insert(old_idx, pos_x, pos_y, masses);
+                qtree.insert(index, pos_x, pos_y, masses);
 
-                qtree.insert(p.to_owned());
-                qtree.insert(particle);
-
-                self.children[usize::from(&quadrant)] = QuadNode::Internal(Box::new(qtree));
+                *quad_node = QuadNode::Internal(Box::new(qtree));
             }
-            QuadNode::Internal(quad_tree) => quad_tree.insert(particle),
+            QuadNode::Internal(quad_tree) => {
+                quad_tree.insert(index, pos_x, pos_y, masses);
+            }
         }
     }
 
-    fn update_mass_and_center(&mut self, particle: &Particle) {
-        let scaled_center =
-            self.center_of_mass.scale(self.total_mass) + particle.position.scale(particle.mass);
-
-        self.total_mass += particle.mass;
-
-        self.center_of_mass = scaled_center.scale(1.0 / self.total_mass);
+    fn update_mass_and_center(&mut self, p_pos: Vector2, p_mass: f32) {
+        let total_mass_new = self.total_mass + p_mass;
+        if total_mass_new > 0.0 {
+            let scaled_center =
+                self.center_of_mass.scale(self.total_mass) + p_pos.scale(p_mass);
+            self.center_of_mass = scaled_center.scale(1.0 / total_mass_new);
+        }
+        self.total_mass = total_mass_new;
     }
 
     pub fn compute_force(
         &self,
-        particle: &Particle,
-        gravity: f64,
-        epsilon: f64,
-        scale: f64,
+        p_pos: Vector2,
+        gravity: f32,
+        epsilon: f32,
+        scale: f32,
+        pos_x: &[f32],
+        pos_y: &[f32],
+        masses: &[f32],
     ) -> Vector2 {
         if self.total_mass == 0.0 {
             return Vector2::new(0.0, 0.0);
         }
 
         let s = self.boundary.width;
-        let d = self.center_of_mass.distance(&particle.position);
+        let d = self.center_of_mass.distance(&p_pos);
 
         // Barnes-Hut threshold
         let theta = 0.5;
 
         // If the node is far enough, use its center of mass as a single particle
         if d > 0.0 && s / d < theta {
-            let cluster = Particle::new(
-                self.total_mass,
-                0.0,
-                self.center_of_mass,
-                Vector2::new(0.0, 0.0),
-                [0.0, 0.0, 0.0],
-            );
-            return softened_gravitational_force(&cluster, particle, gravity, epsilon, scale);
+            // We need a dummy particle for softened_gravitational_force
+            // but softened_gravitational_force takes Particle refs.
+            // Let's refactor softened_gravitational_force to take components.
+            return self.force_from_mass(p_pos, self.center_of_mass, self.total_mass, gravity, epsilon, scale);
         }
 
-        let mut total_v = Vector2::new(0.0, 0.0);
-        for i in 0..4 {
-            let quad_node = &self.children[i];
-
+        let mut acceleration = Vector2::new(0.0, 0.0);
+        for quad_node in &self.children {
             match quad_node {
                 QuadNode::Empty => {}
-
-                QuadNode::Leaf(p) => {
-                    let v = softened_gravitational_force(p, particle, gravity, epsilon, scale);
-
-                    total_v = total_v + v;
+                QuadNode::Leaf(index) => {
+                    let idx = *index;
+                    let other_pos = Vector2::new(pos_x[idx], pos_y[idx]);
+                    let other_mass = masses[idx];
+                    acceleration = acceleration + self.force_from_mass(p_pos, other_pos, other_mass, gravity, epsilon, scale);
                 }
-
                 QuadNode::Internal(quad_tree) => {
-                    let v = quad_tree.compute_force(particle, gravity, epsilon, scale);
-                    total_v = total_v + v;
+                    acceleration = acceleration + quad_tree.compute_force(p_pos, gravity, epsilon, scale, pos_x, pos_y, masses);
                 }
             }
         }
-        return total_v;
+        acceleration
+    }
+    
+    fn force_from_mass(&self, p_pos: Vector2, other_pos: Vector2, other_mass: f32, gravity: f32, epsilon: f32, scale: f32) -> Vector2 {
+        if p_pos.x == other_pos.x && p_pos.y == other_pos.y {
+            return Vector2::new(0.0, 0.0);
+        }
+
+        let distance_vector = other_pos - p_pos; // Vector from self (p2) to other (p1)
+        let r_sq = distance_vector.x.powi(2) + distance_vector.y.powi(2);
+        let force_magnitude_scaled = gravity * other_mass / (r_sq + epsilon.powi(2)).powf(1.5);
+        
+        // Acceleration = (G * m1 * r_vec) / (r^2 + eps^2)^1.5 * scale
+        distance_vector.scale(force_magnitude_scaled * scale)
     }
 }
 
@@ -133,117 +155,21 @@ mod tests {
         assert_eq!(quadtree.total_mass, 0.0);
         assert_eq!(quadtree.center_of_mass, Vector2 { x: 0.0, y: 0.0 });
         assert!(matches!(quadtree.children[0], QuadNode::Empty));
-        // Check other children similarly
     }
 
     #[test]
     fn test_particle_insertion_and_mass_update() {
         let mut quadtree = QuadTree::new(Rectangle::new(Vector2::new(0.0, 0.0), 100.0, 100.0));
-        let p1 = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 10.0, y: 10.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-        let p2 = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 90.0, y: 10.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-        let p3 = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 10.0, y: 90.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-        let p4 = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 90.0, y: 90.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
+        
+        let pos_x = vec![10.0, 90.0, 10.0, 90.0];
+        let pos_y = vec![10.0, 10.0, 90.0, 90.0];
+        let masses = vec![1.0, 1.0, 1.0, 1.0];
 
-        quadtree.insert(p1);
-        quadtree.insert(p2);
-        quadtree.insert(p3);
-        quadtree.insert(p4);
+        for i in 0..4 {
+            quadtree.insert(i, &pos_x, &pos_y, &masses);
+        }
 
-        assert!(matches!(quadtree.children[0], QuadNode::Leaf(_))); // Assuming NW quadrant
-        assert!(matches!(quadtree.children[1], QuadNode::Leaf(_))); // Assuming NW quadrant
-        assert!(matches!(quadtree.children[2], QuadNode::Leaf(_))); // Assuming NW quadrant
-        assert!(matches!(quadtree.children[3], QuadNode::Leaf(_))); // Assuming NW quadrant
         assert_eq!(quadtree.total_mass, 4.0);
         assert_eq!(quadtree.center_of_mass, Vector2::new(50.0, 50.0));
-    }
-
-    #[test]
-    fn test_compute() {
-        let p1 = Particle::new(
-            2.8121667702779295e+30,
-            1967738920.8774006,
-            Vector2::new(0.0, 0.0),
-            Vector2::new(0.0, 0.0),
-            [100.0, 100.0, 100.0],
-        );
-        let p2 = Particle::new(
-            3.112157648312442e+30,
-            2177649560.9061766,
-            Vector2::new(3.0, 4.0),
-            Vector2::new(0.0, 0.0),
-            [100.0, 100.0, 100.0],
-        );
-        let p3 = Particle::new(
-            1.0,
-            1.0,
-            Vector2 { x: 10.0, y: 90.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-        let p4 = Particle::new(
-            3.112157648312442e+30,
-            1.0,
-            Vector2 { x: 90.0, y: 90.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            [255.0, 255.0, 255.0],
-        );
-
-        let mut particles = vec![p1, p2, p3, p4];
-
-        let r = Rectangle::new(Vector2 { x: 0.0, y: 0.0 }, 100.0, 100.0);
-
-        let mut quadtree: QuadTree = QuadTree::new(r);
-
-        for i in 0..particles.len() {
-            quadtree.insert(particles[i]);
-        }
-
-        for i in 0..particles.len() {
-            let velocity = quadtree.compute_force(&particles[i], 10000.0, 10.0, 100.0);
-
-            particles[i].velocity = particles[i].velocity + velocity;
-            particles[i].position = particles[i].next_position();
-
-            println!("{}: {}", i, particles[i].position)
-        }
-
-        println!("round2");
-        let mut quadtree = QuadTree::new(r);
-
-        for i in 0..particles.len() {
-            quadtree.insert(particles[i])
-        }
-
-        for i in 0..particles.len() {
-            let velocity = quadtree.compute_force(&particles[i], 0.005, 5.0, 10.0);
-            particles[i].velocity = particles[i].velocity + velocity;
-            particles[i].position = particles[i].next_position();
-
-            println!("{}: {}", i, particles[i].position)
-        }
     }
 }

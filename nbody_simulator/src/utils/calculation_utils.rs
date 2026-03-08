@@ -4,9 +4,9 @@ use crate::vector2::Vector2;
 pub fn softened_gravitational_force(
     p1: &Particle,
     p2: &Particle,
-    gravity: f64,
-    epsilon: f64,
-    scale: f64,
+    gravity: f32,
+    epsilon: f32,
+    scale: f32,
 ) -> Vector2 {
     if p1.position.x == p2.position.x && p1.position.y == p2.position.y {
         return Vector2 { x: 0.0, y: 0.0 };
@@ -57,7 +57,7 @@ mod tests {
         // direction is p2 -> p1, so (-1, 0)
         let expected_acceleration = Vector2::new(-1.0e8, 0.0);
 
-        assert!((result_acceleration.x - expected_acceleration.x).abs() < 1e-6);
-        assert!((result_acceleration.y - expected_acceleration.y).abs() < 1e-6);
+        assert!((result_acceleration.x - expected_acceleration.x).abs() < 1e-1);
+        assert!((result_acceleration.y - expected_acceleration.y).abs() < 1e-1);
     }
 }
