@@ -5,9 +5,11 @@ use crate::vector2::Vector2;
 #[derive(Debug)]
 pub enum QuadNode {
     Internal(Box<QuadTree>),
-    Leaf(usize), // Index into the SoA arrays
+    Leaf(Vec<usize>), // Indices into the SoA arrays
     Empty,
 }
+
+const MAX_DEPTH: u32 = 20;
 
 #[derive(Debug)]
 pub struct QuadTree {
@@ -15,10 +17,15 @@ pub struct QuadTree {
     pub total_mass: f32,
     pub center_of_mass: Vector2,
     pub children: [QuadNode; 4],
+    pub depth: u32,
 }
 
 impl QuadTree {
     pub fn new(boundary: Rectangle) -> QuadTree {
+        QuadTree::with_depth(boundary, 0)
+    }
+
+    fn with_depth(boundary: Rectangle, depth: u32) -> QuadTree {
         QuadTree {
             boundary,
             total_mass: 0.0,
@@ -29,6 +36,7 @@ impl QuadTree {
                 QuadNode::Empty,
                 QuadNode::Empty,
             ],
+            depth,
         }
     }
 
@@ -53,14 +61,21 @@ impl QuadTree {
 
         match quad_node {
             QuadNode::Empty => {
-                *quad_node = QuadNode::Leaf(index);
+                *quad_node = QuadNode::Leaf(vec![index]);
             }
-            QuadNode::Leaf(old_index) => {
-                let old_idx = *old_index;
+            QuadNode::Leaf(indices) => {
+                if self.depth >= MAX_DEPTH {
+                    indices.push(index);
+                    return;
+                }
+
+                let old_indices = indices.clone();
                 let boundary = quadrant_to_rectangle(&self.boundary, &quadrant);
 
-                let mut qtree = QuadTree::new(boundary);
-                qtree.insert(old_idx, pos_x, pos_y, masses);
+                let mut qtree = QuadTree::with_depth(boundary, self.depth + 1);
+                for old_idx in old_indices {
+                    qtree.insert(old_idx, pos_x, pos_y, masses);
+                }
                 qtree.insert(index, pos_x, pos_y, masses);
 
                 *quad_node = QuadNode::Internal(Box::new(qtree));
@@ -113,11 +128,12 @@ impl QuadTree {
         for quad_node in &self.children {
             match quad_node {
                 QuadNode::Empty => {}
-                QuadNode::Leaf(index) => {
-                    let idx = *index;
-                    let other_pos = Vector2::new(pos_x[idx], pos_y[idx]);
-                    let other_mass = masses[idx];
-                    acceleration = acceleration + self.force_from_mass(p_pos, other_pos, other_mass, gravity, epsilon, scale);
+                QuadNode::Leaf(indices) => {
+                    for &idx in indices {
+                        let other_pos = Vector2::new(pos_x[idx], pos_y[idx]);
+                        let other_mass = masses[idx];
+                        acceleration = acceleration + self.force_from_mass(p_pos, other_pos, other_mass, gravity, epsilon, scale);
+                    }
                 }
                 QuadNode::Internal(quad_tree) => {
                     acceleration = acceleration + quad_tree.compute_force(p_pos, gravity, epsilon, scale, pos_x, pos_y, masses);
@@ -169,6 +185,22 @@ mod tests {
         }
 
         assert_eq!(quadtree.total_mass, 4.0);
+        assert_eq!(quadtree.center_of_mass, Vector2::new(50.0, 50.0));
+    }
+
+    #[test]
+    fn test_identical_positions_stack_overflow() {
+        let mut quadtree = QuadTree::new(Rectangle::new(Vector2::new(0.0, 0.0), 100.0, 100.0));
+        
+        // Two particles at the exact same position
+        let pos_x = vec![50.0, 50.0];
+        let pos_y = vec![50.0, 50.0];
+        let masses = vec![1.0, 1.0];
+
+        quadtree.insert(0, &pos_x, &pos_y, &masses);
+        quadtree.insert(1, &pos_x, &pos_y, &masses);
+
+        assert_eq!(quadtree.total_mass, 2.0);
         assert_eq!(quadtree.center_of_mass, Vector2::new(50.0, 50.0));
     }
 }

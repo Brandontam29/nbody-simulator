@@ -1,6 +1,5 @@
 import appState from "./app-state.js";
 import state from "./form-state.js";
-import { setupParticles } from "./script.js";
 
 const canvas = document.getElementsByTagName("canvas")[0];
 
@@ -12,52 +11,22 @@ export function registerPlayPauseButton() {
 
     button.addEventListener("click", () => {
         appState.play = !appState.play;
-
-        if (appState.play) {
-            requestAnimationFrame(render);
-        }
-    });
-}
-
-export function registerNextFrameButton() {
-    const button = document.getElementById("next-frame");
-
-    button.addEventListener("click", async () => {
-        appState.particles = await next_nbody_positions(
-            appState.particles,
-            state.gravity,
-            state.epsilon,
-            state.timeStep
-        );
-
-        requestAnimationFrame(render);
+        window.postToWorker("PLAY_PAUSE", appState.play);
     });
 }
 
 export function registerRestartButton() {
     const button = document.getElementById("restart");
 
-    button.addEventListener("click", async () => {
-        setupParticles();
-    });
-}
-export function registerLogStatsButton() {
-    const button = document.getElementById("log-stats");
-
-    button.addEventListener("click", async () => {
-        // for (let i = 0; i < appState.particles.length; i++) {
-        //     const p = appState.particles[i];
-        //     console.log(i, p);
-        // }
-
-        console.log(appState.particles);
+    button.addEventListener("click", () => {
+        window.postToWorker("RESTART", state);
     });
 }
 
 export function registerSaveButton() {
     const button = document.getElementById("save");
 
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", () => {
         const form = document.getElementById("parameter-form");
         const formData = new FormData(form);
 
@@ -86,7 +55,7 @@ export function registerSaveButton() {
 export function registerParameterForm() {
     const parameterForm = document.getElementById("parameter-form");
 
-    parameterForm.addEventListener("submit", async (event) => {
+    parameterForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
         const keys = Object.keys(state);
@@ -101,35 +70,39 @@ export function registerParameterForm() {
                 continue;
             }
 
+            if (input.type === "checkbox") {
+                state[keys[i]] = input.checked;
+                continue;
+            }
+
             state[keys[i]] = input.value;
         }
 
-        canvas.width = state.canvasWidth;
-        canvas.height = state.canvasHeight;
-
-        setupParticles();
+        // We don't resize the canvas here because transferControlToOffscreen 
+        // doesn't allow changing width/height from the main thread directly 
+        // after transfer easily, but we can send the new dimensions.
+        // Actually, the offscreen canvas dimensions need to be updated.
+        window.postToWorker("RESTART", state);
     });
 }
+
 export function registerFileUpload() {
     const uploadInput = document.getElementById("parameters-upload");
 
     uploadInput.addEventListener("change", (event) => {
-        // Get the file list from the input element
         const files = event.target.files;
 
-        if (files.length < 0) {
+        if (files.length <= 0) {
             return;
         }
 
         const file = files[0];
-
         const reader = new FileReader();
 
         reader.onload = (e) => {
-            console.log(e.target.result);
-
             const json = JSON.parse(e.target.result);
             setFormValues(json);
+            // Optionally auto-submit or just let user click submit
         };
 
         reader.readAsText(file);
@@ -148,21 +121,23 @@ export function setFormValues(obj) {
             const value = `${obj[key]}`;
 
             for (let j = 0; j < inputs.length; j++) {
-                const i = inputs[j];
-                if (i.value === value) i.checked = true;
+                const item = inputs[j];
+                if (item.value === value) item.checked = true;
             }
             continue;
         }
 
         const input = inputs[0];
 
+        if (input.type === "checkbox") {
+            input.checked = !!obj[key];
+            continue;
+        }
+
         input.value = obj[key];
     }
 }
+
 export function registerDefaultValues() {
     setFormValues(state);
 }
-
-// export function formatNumberWithUnderscores(number) {
-//     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "_");
-// }

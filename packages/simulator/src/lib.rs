@@ -73,10 +73,14 @@ pub fn generate_particles(
     mass: f32,
     mass_deviation: f32,
     diameter: f32,
-) -> Vec<Particle> {
+) -> SimulationWrapper {
     let world_size = Vector2::new(world_width, world_height);
 
-    (0..number)
+    let particles: Vec<Particle> = (0..number)
         .map(|_| Particle::new_rand(world_size, mass, mass_deviation, diameter))
-        .collect()
+        .collect();
+    
+    SimulationWrapper {
+        inner: Simulation::new(particles),
+    }
 }

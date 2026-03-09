@@ -85,3 +85,39 @@ impl Simulation {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vector2::Vector2;
+
+    #[test]
+    fn test_simulation_step() {
+        let p1 = Particle::new(
+            1.0e10,
+            1.0,
+            Vector2::new(0.0, 0.0),
+            Vector2::new(0.0, 0.0),
+            [255.0, 255.0, 255.0],
+        );
+        let p2 = Particle::new(
+            1.0,
+            1.0,
+            Vector2::new(10.0, 0.0),
+            Vector2::new(0.0, 0.0),
+            [255.0, 255.0, 255.0],
+        );
+
+        let mut sim = Simulation::new(vec![p1, p2]);
+        let world_size = Vector2::new(100.0, 100.0);
+        let gravity = 1.0;
+        let epsilon = 0.0;
+        let scale = 1.0;
+
+        sim.step(world_size, gravity, epsilon, scale);
+
+        // Particle 2 should have moved towards Particle 1 (negative x direction)
+        assert!(sim.positions_x[1] < 10.0);
+        assert_eq!(sim.positions_y[1], 0.0);
+    }
+}
