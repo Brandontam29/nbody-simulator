@@ -1,11 +1,11 @@
 {
-    "name": "nbody-simulator",
+    "name": "@nbody/web",
     "version": "1.0.0",
     "description": "NBody simulator on a HTML canvas where all calculation are performed via WASM Rust.",
     "type": "module",
     "scripts": {
-        "wasm:build": "wasm-pack build ../nbody_simulator/ --target web && mkdir -p ./src/wasm/ && cp -r ../nbody_simulator/pkg/* ./src/wasm/",
-        "wasm:watch": "cargo watch -w ../nbody_simulator/src/ -s 'npm run wasm:build'",
+        "wasm:build": "wasm-pack build ../simulator/ --target web && mkdir -p ./src/wasm/ && cp -r ../simulator/pkg/* ./src/wasm/",
+        "wasm:watch": "cargo watch -w ../simulator/src/ -s 'npm run wasm:build'",
         "dev": "npm-run-all --parallel dev:vite wasm:watch",
         "dev:vite": "vite",
         "build": "npm run wasm:build && vite build",

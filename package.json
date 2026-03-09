@@ -1,0 +1,13 @@
+{
+  "name": "nbody-simulator-monorepo",
+  "private": true,
+  "description": "NBody simulator monorepo combining Rust WASM and Vite frontend.",
+  "scripts": {
+    "web:dev": "npm run dev --workspace=@nbody/web",
+    "web:build": "npm run build --workspace=@nbody/web",
+    "web:lint": "npm run lint --workspace=@nbody/web"
+  },
+  "workspaces": [
+    "packages/web"
+  ]
+}
