@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["promise", "import"],
+  "categories": {
+    "correctness": "deny",
+    "suspicious": "deny",
+    "pedantic": "off",
+    "perf": "warn",
+    "style": "off"
+  },
+  "rules": {
+    "no-unused-vars": "deny",
+    "no-shadow": "off",
+    "promise/always-return": "off",
+    "import/no-named-export": "off",
+    "import/prefer-default-export": "off",
+    "import/group-exports": "off",
+    "import/exports-last": "off",
+    "capitalized-comments": "off",
+    "no-magic-numbers": "off",
+    "id-length": "off",
+    "no-continue": "off",
+    "max-lines-per-function": "off",
+    "max-statements": "off"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "src/wasm",
+    "tailwind.css"
+  ]
+}

@@ -36,13 +36,14 @@ var Stats = function () {
 
     var beginTime = (performance || Date).now(),
         prevTime = beginTime,
-        frames = 0;
+        frames = 0,
+        memPanel;
 
     var fpsPanel = addPanel(new Stats.Panel("FPS", "#0ff", "#002"));
     var msPanel = addPanel(new Stats.Panel("MS", "#0f0", "#020"));
 
     if (self.performance && self.performance.memory) {
-        var memPanel = addPanel(new Stats.Panel("MB", "#f08", "#201"));
+        memPanel = addPanel(new Stats.Panel("MB", "#f08", "#201"));
     }
 
     showPanel(0);

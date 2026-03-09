@@ -29,7 +29,6 @@ const formState = {
     epsilon: 5.84e9,
     timeStep: 1e16,
     updateFrequency: 10,
-    velocityColoring: true,
     // export let collision = false;
 };
 
