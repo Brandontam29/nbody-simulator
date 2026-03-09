@@ -2,4 +2,4 @@
 /dist
 /wasm
 tailwind.css
-/src/wasm
+/src/features/simulation/wasm

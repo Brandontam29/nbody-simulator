@@ -1,7 +1,5 @@
-import appState from "./app-state.js";
+import appState from "../../core/app-state.js";
 import state from "./form-state.js";
-
-const canvas = document.getElementsByTagName("canvas")[0];
 
 /**
  * Register

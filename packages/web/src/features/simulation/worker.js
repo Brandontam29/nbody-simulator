@@ -1,6 +1,6 @@
 import init, { generate_particles } from "./wasm/nbody_simulator.js";
-import { SimulationEngine } from "./SimulationEngine.js";
-import { Renderer } from "./Renderer.js";
+import { SimulationEngine } from "./engine.js";
+import { Renderer } from "../rendering/renderer.js";
 
 let engine = null;
 let renderer = null;

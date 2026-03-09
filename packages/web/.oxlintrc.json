@@ -30,7 +30,7 @@
   "ignorePatterns": [
     "node_modules",
     "dist",
-    "src/wasm",
+    "src/features/simulation/wasm",
     "tailwind.css"
   ]
 }

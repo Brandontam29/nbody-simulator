@@ -4,7 +4,7 @@
     "description": "NBody simulator on a HTML canvas where all calculation are performed via WASM Rust.",
     "type": "module",
     "scripts": {
-        "wasm:build": "wasm-pack build ../simulator/ --target web --out-dir $(pwd)/src/wasm",
+        "wasm:build": "wasm-pack build ../simulator/ --target web --out-dir $(pwd)/src/features/simulation/wasm",
         "wasm:watch": "nodemon --watch ../simulator/src/ -e rs --exec 'npm run wasm:build'",
         "dev": "npm-run-all --parallel dev:vite wasm:watch",
         "dev:vite": "vite",

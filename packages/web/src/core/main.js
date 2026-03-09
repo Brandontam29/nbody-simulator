@@ -1,7 +1,7 @@
-import { Stats } from "./stats.js";
-import state from "./form-state.js";
+import { Stats } from "../features/rendering/stats.js";
+import state from "../features/ui/form-state.js";
 import appState from "./app-state.js";
-import * as register from "./register.js";
+import * as register from "../features/ui/manager.js";
 
 /**
  * Variables
@@ -16,7 +16,7 @@ stats.showPanel(0);
 container.appendChild(stats.dom);
 
 // Initialize Worker
-const worker = new Worker(new URL("./worker.js", import.meta.url), {
+const worker = new Worker(new URL("../features/simulation/worker.js", import.meta.url), {
     type: "module",
 });
 
