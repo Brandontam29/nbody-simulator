@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "packages/simulator",
-    "packages/script",
 ]
 resolver = "2"

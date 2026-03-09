@@ -4,20 +4,22 @@
     "description": "NBody simulator on a HTML canvas where all calculation are performed via WASM Rust.",
     "type": "module",
     "scripts": {
-        "wasm:build": "wasm-pack build ../simulator/ --target web && mkdir -p ./src/wasm/ && cp -r ../simulator/pkg/* ./src/wasm/",
-        "wasm:watch": "cargo watch -w ../simulator/src/ -s 'npm run wasm:build'",
+        "wasm:build": "wasm-pack build ../simulator/ --target web --out-dir $(pwd)/src/wasm",
+        "wasm:watch": "nodemon --watch ../simulator/src/ -e rs --exec 'npm run wasm:build'",
         "dev": "npm-run-all --parallel dev:vite wasm:watch",
         "dev:vite": "vite",
-        "build": "npm run wasm:build && vite build",
+        "build": "npm run wasm:build && npm run build:vite",
+        "build:vite": "vite build",
         "preview": "vite preview",
-        "lint": "oxlint . --ignore-path .gitignore --deny-warnings",
-        "lint:fix": "oxlint . --ignore-path .gitignore --fix"
+        "lint": "oxlint .",
+        "lint:fix": "oxlint . --fix"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
         "@tailwindcss/vite": "^4.2.1",
+        "nodemon": "^3.1.14",
         "npm-run-all": "^4.1.5",
         "oxlint": "^1.51.0",
         "tailwindcss": "^4.2.1",
