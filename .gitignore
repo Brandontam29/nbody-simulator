@@ -17,4 +17,7 @@ dist/
 .netlify
 secret.txt
 .secrets
-.planning
+
+# Planning & Context
+.planning/
+.gemini/
