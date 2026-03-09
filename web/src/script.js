@@ -30,10 +30,40 @@ let simulation = null;
 let views = {
     posX: null,
     posY: null,
+    velX: null,
+    velY: null,
     masses: null,
     diameters: null,
     colors: null,
 };
+
+const COLOR_BINS_COUNT = 32;
+const colorBins = Array.from({ length: COLOR_BINS_COUNT }, () => []);
+const precomputedColors = [];
+
+function initColors() {
+    // Gradient: Deep Blue (0, 0, 100) -> Bright Cyan (0, 255, 255) -> White (255, 255, 255)
+    for (let i = 0; i < COLOR_BINS_COUNT; i++) {
+        let r, g, b;
+        const t = i / (COLOR_BINS_COUNT - 1);
+        
+        if (t < 0.5) {
+            // Deep Blue to Cyan
+            const t2 = t * 2;
+            r = 0;
+            g = Math.floor(255 * t2);
+            b = Math.floor(100 + 155 * t2);
+        } else {
+            // Cyan to White
+            const t2 = (t - 0.5) * 2;
+            r = Math.floor(255 * t2);
+            g = 255;
+            b = 255;
+        }
+        precomputedColors.push(`rgb(${r}, ${g}, ${b})`);
+    }
+}
+initColors();
 
 /**
  * INIT
@@ -65,6 +95,8 @@ function updateViews() {
     
     views.posX = new Float32Array(buffer, simulation.positions_x_ptr(), count);
     views.posY = new Float32Array(buffer, simulation.positions_y_ptr(), count);
+    views.velX = new Float32Array(buffer, simulation.velocities_x_ptr(), count);
+    views.velY = new Float32Array(buffer, simulation.velocities_y_ptr(), count);
     views.masses = new Float32Array(buffer, simulation.masses_ptr(), count);
     views.diameters = new Float32Array(buffer, simulation.diameters_ptr(), count);
     views.colors = new Float32Array(buffer, simulation.colors_ptr(), count * 3);
@@ -86,7 +118,6 @@ async function render() {
             state.epsilon,
             state.timeStep
         );
-        // Refresh views in case memory grew (though unlikely for fixed-size simulation)
         updateViews();
     }
 
@@ -98,31 +129,88 @@ async function render() {
     const count = simulation ? simulation.count() : 0;
     const PAINT_SCALE = 2;
 
-    for (let i = 0; i < count; i++) {
-        const x = views.posX[i];
-        const y = views.posY[i];
-        const diameter = views.diameters[i];
-
-        // Basic Culling
-        if (x < -worldWidth * 0.5 || x > worldWidth * 1.5 || y < -worldHeight * 0.5 || y > worldHeight * 1.5) {
-            continue;
+    if (state.velocityColoring) {
+        // Reset Bins
+        for (let j = 0; j < COLOR_BINS_COUNT; j++) {
+            colorBins[j].length = 0;
         }
 
-        const pcX = (x / worldWidth) * canvasWidth;
-        const pcY = (y / worldHeight) * canvasHeight;
-        const pcDiameter = (diameter / worldWidth) * canvasWidth * PAINT_SCALE;
+        // Velocity Scaling factor for coloring (empirical)
+        const VEL_SCALE = 0.5;
 
-        const r = Math.floor(views.colors[i * 3]);
-        const g = Math.floor(views.colors[i * 3 + 1]);
-        const b = Math.floor(views.colors[i * 3 + 2]);
+        // Binning Pass
+        for (let i = 0; i < count; i++) {
+            const x = views.posX[i];
+            const y = views.posY[i];
 
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fillRect(
-            pcX - pcDiameter / 2,
-            pcY - pcDiameter / 2,
-            pcDiameter,
-            pcDiameter
-        );
+            // Basic Culling
+            if (x < -worldWidth * 0.5 || x > worldWidth * 1.5 || y < -worldHeight * 0.5 || y > worldHeight * 1.5) {
+                continue;
+            }
+
+            const vx = views.velX[i];
+            const vy = views.velY[i];
+            const speed = Math.sqrt(vx * vx + vy * vy) * VEL_SCALE;
+            
+            let binIdx = Math.floor(speed);
+            if (binIdx >= COLOR_BINS_COUNT) binIdx = COLOR_BINS_COUNT - 1;
+            
+            colorBins[binIdx].push(i);
+        }
+
+        // Drawing Pass (Batched by Color)
+        for (let j = 0; j < COLOR_BINS_COUNT; j++) {
+            const indices = colorBins[j];
+            if (indices.length === 0) continue;
+
+            ctx.fillStyle = precomputedColors[j];
+            
+            for (let k = 0; k < indices.length; k++) {
+                const i = indices[k];
+                const x = views.posX[i];
+                const y = views.posY[i];
+                const diameter = views.diameters[i];
+
+                const pcX = (x / worldWidth) * canvasWidth;
+                const pcY = (y / worldHeight) * canvasHeight;
+                const pcDiameter = (diameter / worldWidth) * canvasWidth * PAINT_SCALE;
+
+                ctx.fillRect(
+                    pcX - pcDiameter / 2,
+                    pcY - pcDiameter / 2,
+                    pcDiameter,
+                    pcDiameter
+                );
+            }
+        }
+    } else {
+        // Original behavior: use WASM colors
+        for (let i = 0; i < count; i++) {
+            const x = views.posX[i];
+            const y = views.posY[i];
+
+            // Basic Culling
+            if (x < -worldWidth * 0.5 || x > worldWidth * 1.5 || y < -worldHeight * 0.5 || y > worldHeight * 1.5) {
+                continue;
+            }
+
+            const diameter = views.diameters[i];
+            const pcX = (x / worldWidth) * canvasWidth;
+            const pcY = (y / worldHeight) * canvasHeight;
+            const pcDiameter = (diameter / worldWidth) * canvasWidth * PAINT_SCALE;
+
+            const r = Math.floor(views.colors[i * 3]);
+            const g = Math.floor(views.colors[i * 3 + 1]);
+            const b = Math.floor(views.colors[i * 3 + 2]);
+
+            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(
+                pcX - pcDiameter / 2,
+                pcY - pcDiameter / 2,
+                pcDiameter,
+                pcDiameter
+            );
+        }
     }
 
     stats.end();
@@ -204,6 +292,10 @@ export function registerParameterForm() {
                 state[keys[i]] = input.valueAsNumber;
                 continue;
             }
+            if (input.type === "checkbox") {
+                state[keys[i]] = input.checked;
+                continue;
+            }
             state[keys[i]] = input.value;
         }
         canvas.width = state.canvasWidth;
@@ -241,10 +333,16 @@ export function setFormValues(obj) {
             }
             continue;
         }
-        const input = inputs[0];
-        input.value = obj[key];
-    }
-}
+                const input = inputs[0];
+        
+                if (input.type === "checkbox") {
+                    input.checked = !!obj[key];
+                    continue;
+                }
+        
+                input.value = obj[key];
+            }
+        }
 
 export function registerDefaultValues() {
     setFormValues(state);
