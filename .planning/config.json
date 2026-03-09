@@ -6,7 +6,7 @@
     "styling": "TailwindCSS"
   },
   "preferences": {
-    "auto_commit": true,
+    "auto_commit": false,
     "testing": "required"
   }
 }

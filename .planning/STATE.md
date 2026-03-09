@@ -1,15 +1,15 @@
 # Project State
 
-## Current Phase: 2 (Enhanced Visualization)
+## Current Phase: 3 (Interactive Features)
 - Phase 1 (Core Performance & Stabilization) COMPLETED.
-- Simulation refactored to SoA architecture with f32 precision.
-- Shared memory buffer interop implemented with JS.
-- Index-based QuadTree with Barnes-Hut approximation implemented.
-- 5,000 particles at 60 FPS target achieved (verified via WASM build and refactor).
+- Phase 2 (Enhanced Visualization) COMPLETED.
+- Batched velocity-based coloring implemented (32 bins).
+- Rendering performance optimized by grouping draw calls.
+- UI toggle for velocity coloring added.
 
 ## Active Task: None
-Next: Begin Phase 2 (Enhanced Visualization).
+Next: Begin Phase 3 (Interactive Features).
 
 ## Context
-- The core engine is now highly optimized and ready for visual enhancements.
-- Memory layout is fixed-size SoA, managed by WASM and viewed by JS.
+- The simulator now supports high-performance rendering with dynamic coloring.
+- Ready for interactive features like "click to add" and simulation presets.
