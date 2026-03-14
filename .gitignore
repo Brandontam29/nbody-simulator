@@ -18,6 +18,14 @@ dist/
 secret.txt
 .secrets
 
-# Planning & Context
-.planning/
+# AI 
 .gemini/
+.claude/
+
+# GSD
+.planning/
+
+# OpenSpec
+openspec/
+.github/skills/
+.github/prompts/

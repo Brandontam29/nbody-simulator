@@ -8,6 +8,7 @@
     "web:dev": "npm run dev:vite --workspace=@nbody/web",
     "web:build": "npm run build:vite --workspace=@nbody/web",
     "web:lint": "npm run lint --workspace=@nbody/web",
+    "test": "vitest",
     "dev": "npm-run-all --parallel wasm:watch web:dev",
     "build": "npm run wasm:build && npm run web:build"
   },
