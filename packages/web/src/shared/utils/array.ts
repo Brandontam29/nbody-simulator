@@ -1,7 +1,7 @@
-export function removeElementsByIndices(array, indicesToRemove) {
+export function removeElementsByIndices<T>(array: T[], indicesToRemove: number[]): void {
     // Sort indices in descending order to avoid affecting the positions
     // of elements yet to be removed.
-    indicesToRemove.sort((a, b) => b - a);
+    indicesToRemove.sort((a: number, b: number) => b - a);
 
     // Remove elements from the array starting from the highest index.
     for (const index of indicesToRemove) {
