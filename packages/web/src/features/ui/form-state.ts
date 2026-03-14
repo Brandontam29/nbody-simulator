@@ -26,16 +26,16 @@ const formState: FormState = {
   canvasHeight: 700,
   canvasWidth: 700,
   worldWidth: Math.floor(DISTANCE_SUN_EARTH * 3), // based on height because wS * (cW / cH which is the ratio)
-  particleAmount: 100,
+  particleAmount: 1000,
   width: 700,
   height: 700,
-  mass: SUN.mass, // earth
+  mass: 100000, 
   massDeviation: 90.0,
   diameter: SUN.diameter,
 
-  gravity: 6.6743e-11,
+  gravity: 6.6743e-12,
   epsilon: 5.84e9,
-  timeStep: 86400,
+  timeStep: 5000000000000000,
   updateFrequency: 10,
   // export let collision = false;
 };
