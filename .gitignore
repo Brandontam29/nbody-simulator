@@ -18,6 +18,9 @@ dist/
 secret.txt
 .secrets
 
+# JS/TS
+node_modules/
+
 # AI 
 .gemini/
 .claude/
