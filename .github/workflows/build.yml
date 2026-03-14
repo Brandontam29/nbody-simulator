@@ -16,47 +16,32 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
+          cache: 'npm'
 
-      - name: rust-toolchain
-        uses: actions-rs/toolchain@v1.0.6
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
 
-      - name: Build WASM
-        run: wasm-pack build --target web
-        working-directory: ./nbody_simulator
-
       - name: Install dependencies
         run: npm ci
-        working-directory: ./web
 
-      - name: Build Tailwind CSS
-        run: npx tailwindcss -i ./src/app.css -o ./src/tailwind.css --minify
-        working-directory: ./web
+      - name: Build WASM
+        run: npm run wasm:build
 
-      - name: Prepare dist directory
-        run: |
-          mkdir -p dist/
-          mkdir -p dist/wasm/
-          cp -R ./web/src/* dist/
-          cp -R ./nbody_simulator/pkg/* dist/wasm/
-        shell: bash
-
-      - name: Install Netlify
-        run: npm i netlify-cli@17.16.1 -g
+      - name: Build Web
+        run: npm run web:build
 
       - name: Deploy to Netlify
-        id: netlify_deploy
+        if: github.ref == 'refs/heads/main'
         run: |
-          netlify deploy --prod\
-            --dir dist \
+          npx netlify-cli deploy --prod \
+            --dir packages/web/dist \
             --site ${{ secrets.NETLIFY_SITE_ID }} \
             --auth ${{ secrets.NETLIFY_API_TOKEN }}
