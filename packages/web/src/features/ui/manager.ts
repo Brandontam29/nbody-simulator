@@ -1,6 +1,28 @@
 import appState from '../../core/app-state';
 import state, { FormState } from './form-state';
 
+const STORAGE_KEY = 'nbody-params';
+
+function saveToLocalStorage(state: FormState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error('Failed to save to localStorage:', e);
+  }
+}
+
+function loadFromLocalStorage(): Partial<FormState> | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to load from localStorage:', e);
+  }
+  return null;
+}
+
 declare global {
   interface Window {
     postToWorker: (type: string, data: any) => void;
@@ -93,7 +115,27 @@ export function registerParameterForm() {
     // doesn't allow changing width/height from the main thread directly
     // after transfer easily, but we can send the new dimensions.
     // Actually, the offscreen canvas dimensions need to be updated.
+    saveToLocalStorage(state);
     window.postToWorker('RESTART', state);
+  });
+}
+
+export function registerLogStatsButton() {
+  const button = document.getElementById('log-stats') as HTMLButtonElement | null;
+  if (!button) return;
+
+  button.addEventListener('click', () => {
+    window.postToWorker('LOG_STATS', null);
+  });
+}
+
+export function registerClearSettingsButton() {
+  const button = document.getElementById('clear-settings') as HTMLButtonElement | null;
+  if (!button) return;
+
+  button.addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
   });
 }
 
@@ -116,6 +158,7 @@ export function registerFileUpload() {
       if (e.target && typeof e.target.result === 'string') {
         const json = JSON.parse(e.target.result);
         setFormValues(json);
+        saveToLocalStorage(state);
       }
     };
 
@@ -153,5 +196,9 @@ export function setFormValues(obj: Record<string, any>) {
 }
 
 export function registerDefaultValues() {
+  const stored = loadFromLocalStorage();
+  if (stored) {
+    Object.assign(state, stored);
+  }
   setFormValues(state);
 }

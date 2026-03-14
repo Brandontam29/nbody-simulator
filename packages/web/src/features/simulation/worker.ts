@@ -65,6 +65,10 @@ onmessage = async (e: MessageEvent) => {
       }
       break;
     }
+    case 'LOG_STATS': {
+      console.log('Current Simulation Engine State:', engine);
+      break;
+    }
   }
 };
 
@@ -81,8 +85,8 @@ function loop() {
   // Report frame start to main thread for stats
   postMessage({ type: 'FRAME_START' });
 
-  engine.step(params);
   renderer.draw(engine, params);
+  engine.step(params);
 
   postMessage({ type: 'FRAME_END' });
 

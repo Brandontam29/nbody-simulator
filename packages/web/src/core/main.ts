@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', (_event) => {
   register.registerPlayPauseButton();
   register.registerRestartButton();
   register.registerSaveButton();
+  register.registerLogStatsButton();
+  register.registerClearSettingsButton();
   register.registerFileUpload();
   register.registerParameterForm();
   register.registerDefaultValues();

@@ -40,9 +40,16 @@
           <button
             id="log-stats"
             type="button"
-            class="relative -ml-px inline-flex items-center rounded-r bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+            class="relative -ml-px inline-flex items-center bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
           >
             Log Stats
+          </button>
+          <button
+            id="clear-settings"
+            type="button"
+            class="relative -ml-px inline-flex items-center rounded-r bg-white hover:bg-sky-100 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10"
+          >
+            Clear Settings
           </button>
         </span>
       </div>
@@ -99,6 +106,8 @@
                 type="number"
                 id="mass"
                 name="mass"
+                min="0.000001"
+                step="any"
               />
             </div>
           </div>

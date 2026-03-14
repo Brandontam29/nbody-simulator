@@ -27,9 +27,9 @@ impl SimulationWrapper {
         }
     }
 
-    pub fn step(&mut self, world_width: f32, world_height: f32, gravity: f32, epsilon: f32, scale: f32) {
+    pub fn step(&mut self, world_width: f32, world_height: f32, gravity: f32, epsilon: f32, time_step: f32) {
         let world_size = Vector2::new(world_width, world_height);
-        self.inner.step(world_size, gravity, epsilon, scale);
+        self.inner.step(world_size, gravity, epsilon, time_step);
     }
 
     pub fn positions_x_ptr(&self) -> *const f32 {

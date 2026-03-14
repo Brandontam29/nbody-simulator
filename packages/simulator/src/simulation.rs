@@ -50,7 +50,7 @@ impl Simulation {
         }
     }
 
-    pub fn step(&mut self, world_size: Vector2, gravity: f32, epsilon: f32, scale: f32) {
+    pub fn step(&mut self, world_size: Vector2, gravity: f32, epsilon: f32, time_step: f32) {
         let boundary = Rectangle::new(Vector2::new(0.0, 0.0), world_size.x, world_size.y);
         let mut q = QuadTree::new(boundary);
         
@@ -64,7 +64,7 @@ impl Simulation {
                 p_pos,
                 gravity,
                 epsilon,
-                scale,
+                time_step,
                 &self.positions_x,
                 &self.positions_y,
                 &self.masses,
@@ -72,8 +72,8 @@ impl Simulation {
             
             self.velocities_x[i] += acceleration.x;
             self.velocities_y[i] += acceleration.y;
-            self.positions_x[i] += self.velocities_x[i];
-            self.positions_y[i] += self.velocities_y[i];
+            self.positions_x[i] += self.velocities_x[i] * time_step;
+            self.positions_y[i] += self.velocities_y[i] * time_step;
             
             // Auto-fix: Reset particles with NaN/Inf
             if self.positions_x[i].is_nan() || self.positions_x[i].is_infinite() {
@@ -112,9 +112,9 @@ mod tests {
         let world_size = Vector2::new(100.0, 100.0);
         let gravity = 1.0;
         let epsilon = 0.0;
-        let scale = 1.0;
+        let time_step = 1.0;
 
-        sim.step(world_size, gravity, epsilon, scale);
+        sim.step(world_size, gravity, epsilon, time_step);
 
         // Particle 2 should have moved towards Particle 1 (negative x direction)
         assert!(sim.positions_x[1] < 10.0);

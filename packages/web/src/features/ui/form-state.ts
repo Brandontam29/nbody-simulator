@@ -35,7 +35,7 @@ const formState: FormState = {
 
   gravity: 6.6743e-11,
   epsilon: 5.84e9,
-  timeStep: 1e16,
+  timeStep: 86400,
   updateFrequency: 10,
   // export let collision = false;
 };
