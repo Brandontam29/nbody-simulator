@@ -27,10 +27,5 @@
     "builtin": true,
     "browser": true
   },
-  "ignorePatterns": [
-    "node_modules",
-    "dist",
-    "src/features/simulation/wasm",
-    "tailwind.css"
-  ]
+  "ignorePatterns": ["node_modules", "dist", "src/features/simulation/wasm", "tailwind.css"]
 }

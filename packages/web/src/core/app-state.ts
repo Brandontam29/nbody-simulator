@@ -1,11 +1,11 @@
 export interface AppState {
-    particles: any[];
-    play: boolean;
+  particles: any[];
+  play: boolean;
 }
 
 const appState: AppState = {
-    particles: [],
-    play: true,
+  particles: [],
+  play: true,
 };
 
 export default appState;

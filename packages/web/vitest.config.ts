@@ -1,5 +1,5 @@
-import { defineConfig, mergeConfig } from 'vitest/config'
-import viteConfig from './vite.config'
+import { defineConfig, mergeConfig } from 'vitest/config';
+import viteConfig from './vite.config';
 
 export default mergeConfig(
   viteConfig,
@@ -14,10 +14,10 @@ export default mergeConfig(
       deps: {
         optimizer: {
           web: {
-            include: ['vitest-canvas-mock']
-          }
-        }
-      }
-    }
-  })
-)
+            include: ['vitest-canvas-mock'],
+          },
+        },
+      },
+    },
+  }),
+);
