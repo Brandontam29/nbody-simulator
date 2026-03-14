@@ -1,14 +1,21 @@
+import { SimulationEngine, SimulationParams } from '../simulation/engine';
+
 export class Renderer {
-    constructor(context) {
+    private ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    private PAINT_SCALE: number;
+
+    constructor(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         this.ctx = context;
         this.PAINT_SCALE = 2;
     }
 
-    draw(engine, params) {
+    draw(engine: SimulationEngine, params: SimulationParams): void {
         const { canvasWidth, canvasHeight, worldWidth } = params;
         const worldHeight = (worldWidth * canvasHeight) / canvasWidth;
         const count = engine.count;
         const views = engine.views;
+
+        if (!views.posX || !views.posY || !views.diameters || !views.colors) return;
 
         this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 

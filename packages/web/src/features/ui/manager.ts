@@ -1,11 +1,18 @@
-import appState from "../../core/app-state.js";
-import state from "./form-state.js";
+import appState from "../../core/app-state";
+import state, { FormState } from "./form-state";
+
+declare global {
+    interface Window {
+        postToWorker: (type: string, data: any) => void;
+    }
+}
 
 /**
  * Register
  */
 export function registerPlayPauseButton() {
-    const button = document.getElementById("play-pause");
+    const button = document.getElementById("play-pause") as HTMLButtonElement | null;
+    if (!button) return;
 
     button.addEventListener("click", () => {
         appState.play = !appState.play;
@@ -14,7 +21,8 @@ export function registerPlayPauseButton() {
 }
 
 export function registerRestartButton() {
-    const button = document.getElementById("restart");
+    const button = document.getElementById("restart") as HTMLButtonElement | null;
+    if (!button) return;
 
     button.addEventListener("click", () => {
         window.postToWorker("RESTART", state);
@@ -22,13 +30,15 @@ export function registerRestartButton() {
 }
 
 export function registerSaveButton() {
-    const button = document.getElementById("save");
+    const button = document.getElementById("save") as HTMLButtonElement | null;
+    if (!button) return;
 
     button.addEventListener("click", () => {
-        const form = document.getElementById("parameter-form");
+        const form = document.getElementById("parameter-form") as HTMLFormElement | null;
+        if (!form) return;
         const formData = new FormData(form);
 
-        const formDataObj = {};
+        const formDataObj: Record<string, any> = {};
 
         formData.forEach((value, key) => {
             formDataObj[key] = value;
@@ -51,29 +61,32 @@ export function registerSaveButton() {
 }
 
 export function registerParameterForm() {
-    const parameterForm = document.getElementById("parameter-form");
+    const parameterForm = document.getElementById("parameter-form") as HTMLFormElement | null;
+    if (!parameterForm) return;
 
     parameterForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const keys = Object.keys(state);
+        const keys = Object.keys(state) as (keyof FormState)[];
 
         for (let i = 0; i < keys.length; i++) {
-            const input = document.getElementsByName(keys[i])[0];
-
-            if (!input) continue;
+            const key = keys[i];
+            const inputElements = document.getElementsByName(key);
+            if (inputElements.length === 0) continue;
+            
+            const input = inputElements[0] as HTMLInputElement;
 
             if (input.type === "number") {
-                state[keys[i]] = input.valueAsNumber;
+                (state as any)[key] = input.valueAsNumber;
                 continue;
             }
 
             if (input.type === "checkbox") {
-                state[keys[i]] = input.checked;
+                (state as any)[key] = input.checked;
                 continue;
             }
 
-            state[keys[i]] = input.value;
+            (state as any)[key] = input.value;
         }
 
         // We don't resize the canvas here because transferControlToOffscreen 
@@ -85,29 +98,32 @@ export function registerParameterForm() {
 }
 
 export function registerFileUpload() {
-    const uploadInput = document.getElementById("parameters-upload");
+    const uploadInput = document.getElementById("parameters-upload") as HTMLInputElement | null;
+    if (!uploadInput) return;
 
-    uploadInput.addEventListener("change", (event) => {
-        const files = event.target.files;
+    uploadInput.addEventListener("change", (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const files = target.files;
 
-        if (files.length <= 0) {
+        if (!files || files.length <= 0) {
             return;
         }
 
         const file = files[0];
         const reader = new FileReader();
 
-        reader.onload = (e) => {
-            const json = JSON.parse(e.target.result);
-            setFormValues(json);
-            // Optionally auto-submit or just let user click submit
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+            if (e.target && typeof e.target.result === "string") {
+                const json = JSON.parse(e.target.result);
+                setFormValues(json);
+            }
         };
 
         reader.readAsText(file);
     });
 }
 
-export function setFormValues(obj) {
+export function setFormValues(obj: Record<string, any>) {
     const keys = Object.keys(obj);
 
     for (let i = 0; i < keys.length; i++) {
@@ -115,17 +131,17 @@ export function setFormValues(obj) {
         const inputs = document.getElementsByName(key);
         if (inputs.length === 0) continue;
 
-        if (inputs.length > 1 && inputs[0].type === "radio") {
+        if (inputs.length > 1 && (inputs[0] as HTMLInputElement).type === "radio") {
             const value = `${obj[key]}`;
 
             for (let j = 0; j < inputs.length; j++) {
-                const item = inputs[j];
+                const item = inputs[j] as HTMLInputElement;
                 if (item.value === value) item.checked = true;
             }
             continue;
         }
 
-        const input = inputs[0];
+        const input = inputs[0] as HTMLInputElement;
 
         if (input.type === "checkbox") {
             input.checked = !!obj[key];

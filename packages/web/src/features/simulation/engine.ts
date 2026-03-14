@@ -1,5 +1,46 @@
+import { SimulationWrapper, InitOutput } from './wasm/nbody_simulator';
+
+export interface SimulationParams {
+    canvasWidth: number;
+    canvasHeight: number;
+    worldWidth: number;
+    particleAmount: number;
+    mass: number;
+    massDeviation: number;
+    diameter: number;
+    gravity: number;
+    epsilon: number;
+    timeStep: number;
+}
+
+export interface SimulationViews {
+    posX: Float32Array | null;
+    posY: Float32Array | null;
+    velX: Float32Array | null;
+    velY: Float32Array | null;
+    masses: Float32Array | null;
+    diameters: Float32Array | null;
+    colors: Float32Array | null;
+}
+
+export interface WasmEngine {
+    generate_particles: (
+        particleAmount: number,
+        worldWidth: number,
+        worldHeight: number,
+        mass: number,
+        massDeviation: number,
+        diameter: number
+    ) => SimulationWrapper;
+    memory: WebAssembly.Memory;
+}
+
 export class SimulationEngine {
-    constructor(wasmModule) {
+    private wasm: WasmEngine;
+    private simulation: SimulationWrapper | null;
+    public views: SimulationViews;
+
+    constructor(wasmModule: WasmEngine) {
         this.wasm = wasmModule;
         this.simulation = null;
         this.views = {
@@ -13,7 +54,7 @@ export class SimulationEngine {
         };
     }
 
-    init(params) {
+    init(params: SimulationParams): void {
         if (this.simulation) {
             this.simulation.free();
         }
@@ -32,7 +73,7 @@ export class SimulationEngine {
         this.updateViews();
     }
 
-    updateViews() {
+    updateViews(): void {
         if (!this.simulation || !this.wasm.memory) return;
 
         const count = this.simulation.count();
@@ -47,7 +88,7 @@ export class SimulationEngine {
         this.views.colors = new Float32Array(buffer, this.simulation.colors_ptr(), count * 3);
     }
 
-    step(params) {
+    step(params: SimulationParams): void {
         if (!this.simulation) return;
 
         const worldHeight = (params.canvasHeight * params.worldWidth) / params.canvasWidth;
@@ -64,7 +105,7 @@ export class SimulationEngine {
         this.updateViews();
     }
 
-    get count() {
+    get count(): number {
         return this.simulation ? this.simulation.count() : 0;
     }
 }

@@ -1,3 +1,5 @@
+import { SimulationParams } from "../simulation/engine";
+
 // in meters
 // in kg
 // from wkipedia 2024
@@ -14,7 +16,13 @@ export const EARTH = {
 
 const DISTANCE_SUN_EARTH = 149.6e9;
 
-const formState = {
+export interface FormState extends SimulationParams {
+    width: number;
+    height: number;
+    updateFrequency: number;
+}
+
+const formState: FormState = {
     canvasHeight: 700,
     canvasWidth: 700,
     worldWidth: Math.floor(DISTANCE_SUN_EARTH * 3), // based on height because wS * (cW / cH which is the ratio)

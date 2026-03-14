@@ -1,28 +1,33 @@
 import init, { generate_particles } from "./wasm/nbody_simulator.js";
-import { SimulationEngine } from "./engine.js";
-import { Renderer } from "../rendering/renderer.js";
+import { SimulationEngine, SimulationParams } from "./engine";
+import { Renderer } from "../rendering/renderer";
 
-let engine = null;
-let renderer = null;
-let canvas = null;
-let ctx = null;
-let params = null;
+let engine: SimulationEngine | null = null;
+let renderer: Renderer | null = null;
+let canvas: OffscreenCanvas | null = null;
+let ctx: OffscreenCanvasRenderingContext2D | null = null;
+let params: SimulationParams | null = null;
 let isPlaying = false;
 
-onmessage = async (e) => {
+onmessage = async (e: MessageEvent) => {
     const { type, data } = e.data;
 
     switch (type) {
         case "INIT": {
             const wasm = await init();
-            engine = new SimulationEngine({ ...wasm, generate_particles });
-            canvas = data.canvas;
-            ctx = canvas.getContext("2d");
+            // Use type assertion here since SimulationEngine constructor expects WasmEngine
+            // and the wasm object from init() might not perfectly match WasmEngine interface
+            // as defined in engine.ts.
+            engine = new SimulationEngine({ ...wasm, generate_particles } as any);
+            canvas = data.canvas as OffscreenCanvas;
+            ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
             renderer = new Renderer(ctx);
             params = data.params;
             
             updateCanvasSize();
-            engine.init(params);
+            if (engine && params) {
+                engine.init(params);
+            }
             
             isPlaying = data.isPlaying;
             if (isPlaying) {
@@ -33,14 +38,20 @@ onmessage = async (e) => {
             break;
         }
         case "UPDATE_PARAMS": {
-            params = { ...params, ...data };
+            if (params) {
+                params = { ...params, ...data };
+            }
             updateCanvasSize();
             break;
         }
         case "RESTART": {
-            params = { ...params, ...data };
+            if (params) {
+                params = { ...params, ...data };
+            }
             updateCanvasSize();
-            engine.init(params);
+            if (engine && params) {
+                engine.init(params);
+            }
             if (!isPlaying) {
                 renderOnce();
             }
@@ -65,7 +76,7 @@ function updateCanvasSize() {
 }
 
 function loop() {
-    if (!isPlaying) return;
+    if (!isPlaying || !engine || !renderer || !params) return;
 
     // Report frame start to main thread for stats
     postMessage({ type: "FRAME_START" });
@@ -79,5 +90,7 @@ function loop() {
 }
 
 function renderOnce() {
-    renderer.draw(engine, params);
+    if (engine && renderer && params) {
+        renderer.draw(engine, params);
+    }
 }
